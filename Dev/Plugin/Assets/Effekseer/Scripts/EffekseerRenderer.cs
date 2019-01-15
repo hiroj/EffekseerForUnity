@@ -184,6 +184,7 @@ namespace Effekseer.Internal
 		}
 	}
 
+	[StructLayout(LayoutKind.Sequential)]
 	struct InternalVertex
 	{
 		public Vector3 Position;
@@ -194,6 +195,7 @@ namespace Effekseer.Internal
 		public Color32 VColor;
 	}
 
+	[StructLayout(LayoutKind.Sequential)]
 	struct Vertex
 	{
 		public Vector3 Position;
@@ -516,7 +518,7 @@ namespace Effekseer.Internal
 			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferFront, path.materiaProps);
 		}
 
-		void RenderInternal(CommandBuffer commandBuffer, byte[] computeBufferTemp, ComputeBuffer computeBuffer, MaterialPropCollection matPropCol)
+		unsafe void RenderInternal(CommandBuffer commandBuffer, byte[] computeBufferTemp, ComputeBuffer computeBuffer, MaterialPropCollection matPropCol)
 		{
 			var renderParameterCount = Plugin.GetUnityRenderParameterCount();
 			var vertexBufferSize = Plugin.GetUnityRenderVertexBufferCount();
@@ -528,6 +530,7 @@ namespace Effekseer.Internal
 				var vertexBuffer = Plugin.GetUnityRenderVertexBuffer();
 				var vertexBufferCount = Plugin.GetUnityRenderVertexBufferCount();
 
+				// TODO : rescale compute buffer
 				System.Runtime.InteropServices.Marshal.Copy(vertexBuffer, computeBufferTemp, 0, vertexBufferCount);
 				computeBuffer.SetData(computeBufferTemp, 0, 0, vertexBufferCount);
 
@@ -535,34 +538,44 @@ namespace Effekseer.Internal
 				{
 					var prop = matPropCol.GetNext();
 					Plugin.GetUnityRenderParameter(ref parameter, i);
-
-					if (parameter.IsDistortingMode > 0)
+					
+					if(parameter.RenderMode == 1)
 					{
-						MaterialKey key = new MaterialKey();
-						key.Blend = (AlphaBlendType)parameter.Blend;
-						key.ZTest = parameter.ZTest > 0;
-						key.ZWrite = parameter.ZWrite > 0;
-						var material = materialsDistortion.GetMaterial(ref key);
+						var infoBuffer = Plugin.GetUnityRenderInfoBuffer();
+						var modelParameters = ((Plugin.UnityRenderModelParameter*)(((byte*)infoBuffer.ToPointer()) + parameter.VertexBufferOffset));
 
-						prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
-						prop.SetBuffer("buf_vertex", computeBuffer);
-						prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
-
-						commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+						// TODO draw model
 					}
 					else
 					{
-						MaterialKey key = new MaterialKey();
-						key.Blend = (AlphaBlendType)parameter.Blend;
-						key.ZTest = parameter.ZTest > 0;
-						key.ZWrite = parameter.ZWrite > 0;
-						var material = materials.GetMaterial(ref key);
+						if (parameter.IsDistortingMode > 0)
+						{
+							MaterialKey key = new MaterialKey();
+							key.Blend = (AlphaBlendType)parameter.Blend;
+							key.ZTest = parameter.ZTest > 0;
+							key.ZWrite = parameter.ZWrite > 0;
+							var material = materialsDistortion.GetMaterial(ref key);
 
-						prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
-						prop.SetBuffer("buf_vertex", computeBuffer);
-						prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
+							prop.SetBuffer("buf_vertex", computeBuffer);
+							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
 
-						commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+						}
+						else
+						{
+							MaterialKey key = new MaterialKey();
+							key.Blend = (AlphaBlendType)parameter.Blend;
+							key.ZTest = parameter.ZTest > 0;
+							key.ZWrite = parameter.ZWrite > 0;
+							var material = materials.GetMaterial(ref key);
+
+							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
+							prop.SetBuffer("buf_vertex", computeBuffer);
+							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+
+							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+						}
 					}
 				}
 			}

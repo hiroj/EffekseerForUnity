@@ -39,6 +39,13 @@ extern "C"
 		return renderer->GetRenderVertexBuffer().size();
 	}
 
+	UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetUnityRenderInfoBuffer()
+	{
+		if (EffekseerPlugin::g_EffekseerRenderer == nullptr) return nullptr;
+		auto renderer = (EffekseerRendererUnity::RendererImplemented*)EffekseerPlugin::g_EffekseerRenderer;
+		return renderer->GetRenderInfoBuffer().data();
+	}
+
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetMaterial(void* material)
 	{
 		if (EffekseerPlugin::g_EffekseerRenderer == nullptr) return;
@@ -64,6 +71,14 @@ namespace EffekseerRendererUnity
 		float		Col[4];
 		::Effekseer::Vector3D	Tangent;
 		::Effekseer::Vector3D	Binormal;
+	};
+
+	struct UnityModelParameter
+	{
+		Effekseer::Matrix44 Matrix;
+		Effekseer::RectF UV;
+		float VColor[4];
+		int32_t Time;
 	};
 
 	static int GetAlignedOffset(int offset, int size)
@@ -224,6 +239,7 @@ namespace EffekseerRendererUnity
 		//GLCheckError();
 
 		exportedVertexBuffer.resize(0);
+		exportedInfoBuffer.resize(0);
 		renderParameters.resize(0);
 		modelParameters.resize(0);
 		return true;
@@ -584,7 +600,31 @@ namespace EffekseerRendererUnity
 
 	void RendererImplemented::DrawModel(void* model, std::vector<Effekseer::Matrix44>& matrixes, std::vector<Effekseer::RectF>& uvs, std::vector<Effekseer::Color>& colors, std::vector<int32_t>& times)
 	{
-		
+		UnityRenderParameter rp;
+		rp.RenderMode = 1;
+		rp.IsDistortingMode = 0;
+		rp.ModelPtr = model;
+		rp.TexturePtrs[0] = m_textures[0];
+		rp.ElementCount = materials.size();
+		rp.VertexBufferOffset = exportedInfoBuffer.size();
+
+		for (int i = 0; i < matrixes.size(); i++)
+		{
+			int offset = exportedInfoBuffer.size();
+
+			exportedInfoBuffer.resize(
+				exportedInfoBuffer.size() +
+				sizeof(UnityModelParameter));
+
+			UnityModelParameter modelParameter;
+			modelParameter.Matrix = matrixes[i];
+			modelParameter.UV = uvs[i];
+			modelParameter.VColor[0] = colors[i].R / 255.0f;
+			modelParameter.VColor[1] = colors[i].G / 255.0f;
+			modelParameter.VColor[2] = colors[i].B / 255.0f;
+			modelParameter.VColor[3] = colors[i].A / 255.0f;
+			*(UnityModelParameter*)(exportedInfoBuffer.data() + offset) = modelParameter;
+		}
 	}
 
 	Shader* RendererImplemented::GetShader(bool useTexture, bool useDistortion) const

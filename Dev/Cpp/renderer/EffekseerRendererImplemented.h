@@ -48,6 +48,7 @@ extern "C"
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API GetUnityRenderParameter(UnityRenderParameter* dst, int index);
 	UNITY_INTERFACE_EXPORT int UNITY_INTERFACE_API GetUnityRenderCount();
 	UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetUnityVertexBuffer();
+	UNITY_INTERFACE_EXPORT void* UNITY_INTERFACE_API GetUnityInfoBuffer();
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API SetMaterial(void* material);
 	
 };
@@ -342,6 +343,7 @@ namespace EffekseerRendererUnity
 
 		std::array<void*, 5> materials;
 		std::vector<uint8_t> exportedVertexBuffer;
+		std::vector<uint8_t> exportedInfoBuffer;
 
 		EffekseerRenderer::StandardRenderer<RendererImplemented, Shader, Vertex, VertexDistortion>*	m_standardRenderer = nullptr;
 	public:
@@ -553,6 +555,7 @@ namespace EffekseerRendererUnity
 
 		std::vector<UnityRenderParameter>& GetRenderParameters() { return renderParameters; };
 		std::vector<uint8_t>& GetRenderVertexBuffer() { return exportedVertexBuffer; }
+		std::vector<uint8_t>& GetRenderInfoBuffer() { return exportedInfoBuffer; }
 
 		virtual int GetRef() { return ::Effekseer::ReferenceObject::GetRef(); }
 		virtual int AddRef() { return ::Effekseer::ReferenceObject::AddRef(); }
