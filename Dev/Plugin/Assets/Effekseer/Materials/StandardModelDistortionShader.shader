@@ -1,4 +1,4 @@
-﻿Shader "Effekseer/StandardDistortionShader" {
+﻿Shader "Effekseer/StandardModelDistortionShader" {
 
 	Properties{
 		_ColorTex("Color (RGBA)", 2D) = "white" {}

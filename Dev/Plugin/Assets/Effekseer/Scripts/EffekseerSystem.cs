@@ -97,7 +97,7 @@ namespace Effekseer
 
 		private static Dictionary<IntPtr, Texture> cachedTextures = new Dictionary<IntPtr, Texture>();
 
-		private static Dictionary<IntPtr, UnityRendererModel> cachedModel = new Dictionary<IntPtr, UnityRendererModel>();
+		private static Dictionary<IntPtr, UnityRendererModel> cachedModels = new Dictionary<IntPtr, UnityRendererModel>();
 
 		private void ReloadEffects()
 		{
@@ -291,6 +291,15 @@ namespace Effekseer
 			return Texture2D.whiteTexture;
 		}
 
+		internal static UnityRendererModel GetCachedModel(IntPtr key)
+		{
+			if (cachedModels.ContainsKey(key))
+			{
+				return cachedModels[key];
+			}
+			return null;
+		}
+
 		[AOT.MonoPInvokeCallback(typeof(Plugin.EffekseerTextureLoaderLoad))]
 		private static IntPtr TextureLoaderLoad(IntPtr path, out int width, out int height, out int format)
 		{
@@ -345,7 +354,7 @@ namespace Effekseer
 					{
 						var unityRendererModel = new UnityRendererModel();
 						unityRendererModel.Initialize(model.bytes);
-						cachedModel.Add(unityRendererModel.VertexBuffer.GetNativeBufferPtr(), unityRendererModel);
+						cachedModels.Add(unityRendererModel.VertexBuffer.GetNativeBufferPtr(), unityRendererModel);
 						return unityRendererModel.VertexBuffer.GetNativeBufferPtr();
 					}
 
@@ -360,7 +369,7 @@ namespace Effekseer
 		private static void ModelLoaderUnload(IntPtr path, IntPtr modelPtr) {
 			if (EffekseerSettings.Instance.RendererType == EffekseerRendererType.Unity)
 			{
-				cachedModel.Remove(modelPtr);
+				cachedModels.Remove(modelPtr);
 			}
 		}
 

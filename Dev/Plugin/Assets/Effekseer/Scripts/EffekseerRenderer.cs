@@ -29,10 +29,8 @@ namespace Effekseer.Internal
 		public ComputeBuffer IndexOffsets;
 
 
-		public void Initialize(byte[] buffer)
+		public unsafe void Initialize(byte[] buffer)
 		{
-			// temporally
-			/*
 			List<int> vertexOffsets = new List<int>();
 			List<int> indexOffsets = new List<int>();
 
@@ -153,7 +151,6 @@ namespace Effekseer.Internal
 			IndexOffsets = new ComputeBuffer(indexOffsets.Count, sizeof(int));
 			VertexOffsets.SetData(vertexOffsets);
 			IndexOffsets.SetData(indexOffsets);
-			*/
 		}
 
 		public void Dispose()
@@ -252,20 +249,31 @@ namespace Effekseer.Internal
 				{
 					material.SetFloat("_BlendSrc", (float)UnityEngine.Rendering.BlendMode.One);
 					material.SetFloat("_BlendDst", (float)UnityEngine.Rendering.BlendMode.Zero);
+					material.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
 				}
 				else if (key.Blend == AlphaBlendType.Blend)
 				{
 					material.SetFloat("_BlendSrc", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
 					material.SetFloat("_BlendDst", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+					material.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
 				}
 				else if (key.Blend == AlphaBlendType.Add)
 				{
 					material.SetFloat("_BlendSrc", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
 					material.SetFloat("_BlendDst", (float)UnityEngine.Rendering.BlendMode.One);
+					material.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
 				}
-				else
+				else if (key.Blend == AlphaBlendType.Mul)
 				{
-					throw new Exception();
+					material.SetFloat("_BlendSrc", (float)UnityEngine.Rendering.BlendMode.Zero);
+					material.SetFloat("_BlendDst", (float)UnityEngine.Rendering.BlendMode.DstColor);
+					material.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
+				}
+				else if (key.Blend == AlphaBlendType.Sub)
+				{
+					material.SetFloat("_BlendSrc", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+					material.SetFloat("_BlendDst", (float)UnityEngine.Rendering.BlendMode.One);
+					material.SetFloat("_BlendOp", (float)UnityEngine.Rendering.BlendOp.ReverseSubtract);
 				}
 
 				material.SetFloat("_ZTest", key.ZTest ? (float)UnityEngine.Rendering.CompareFunction.LessEqual : (float)UnityEngine.Rendering.CompareFunction.Disabled);
@@ -380,11 +388,16 @@ namespace Effekseer.Internal
 
 		MaterialCollection materials = new MaterialCollection();
 		MaterialCollection materialsDistortion = new MaterialCollection();
+		MaterialCollection materialsModel = new MaterialCollection();
+		MaterialCollection materialsModelDistortion = new MaterialCollection();
 
 		public EffekseerRendererUnity()
 		{
 			materials.Shader = EffekseerSettings.Instance.standardShader;
 			materialsDistortion.Shader = EffekseerSettings.Instance.standardDistortionShader;
+			materialsModel.Shader = EffekseerSettings.Instance.standardModelShader;
+			materialsModelDistortion.Shader = EffekseerSettings.Instance.standardModelDistortionShader;
+
 		}
 
 		// RenderPath per Camera
@@ -536,7 +549,6 @@ namespace Effekseer.Internal
 
 				for (int i = 0; i < renderParameterCount; i++)
 				{
-					var prop = matPropCol.GetNext();
 					Plugin.GetUnityRenderParameter(ref parameter, i);
 					
 					if(parameter.RenderMode == 1)
@@ -544,10 +556,32 @@ namespace Effekseer.Internal
 						var infoBuffer = Plugin.GetUnityRenderInfoBuffer();
 						var modelParameters = ((Plugin.UnityRenderModelParameter*)(((byte*)infoBuffer.ToPointer()) + parameter.VertexBufferOffset));
 
-						// TODO draw model
+						MaterialKey key = new MaterialKey();
+						key.Blend = (AlphaBlendType)parameter.Blend;
+						key.ZTest = parameter.ZTest > 0;
+						key.ZWrite = parameter.ZWrite > 0;
+						var material = materialsModel.GetMaterial(ref key);
+
+						for(int mi = 0; mi < parameter.ElementCount; mi++)
+						{
+							var model = EffekseerSystem.GetCachedModel(parameter.ModelPtr);
+							if (model == null)
+								continue;
+
+							var prop = matPropCol.GetNext();
+
+							prop.SetBuffer("buf_vertex", model.VertexBuffer);
+							prop.SetBuffer("buf_index", model.IndexBuffer);
+
+							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+
+							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+						}
 					}
 					else
 					{
+						var prop = matPropCol.GetNext();
+
 						if (parameter.IsDistortingMode > 0)
 						{
 							MaterialKey key = new MaterialKey();
