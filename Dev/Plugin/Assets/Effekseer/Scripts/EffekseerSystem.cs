@@ -3,6 +3,7 @@ using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.IO;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -340,6 +341,7 @@ namespace Effekseer
 		[AOT.MonoPInvokeCallback(typeof(Plugin.EffekseerModelLoaderLoad))]
 		private static IntPtr ModelLoaderLoad(IntPtr path, IntPtr buffer, int bufferSize, ref int requiredBufferSize) {
 			var pathstr = Marshal.PtrToStringUni(path);
+			pathstr = Path.ChangeExtension(pathstr, ".asset");
 			var asset = Instance.effectAssetInLoading;
 			var res = asset.FindModel(pathstr);
 			var model = (res != null) ? res.asset : null;

@@ -120,8 +120,7 @@ namespace EffekseerRendererUnity
 		if (m_matrixes.size() == 0) return;
 		if (parameter.ModelIndex < 0) return;
 
-		//EffekseerInternalModel* model = (EffekseerInternalModel*)parameter.EffectPointer->GetModel(parameter.ModelIndex);
-		Effekseer::Model* model = nullptr;
+		auto model = parameter.EffectPointer->GetModel(parameter.ModelIndex);
 		if (model == nullptr) return;
 
 		::EffekseerRenderer::RenderStateBase::State& state = m_renderer->GetRenderState()->Push();
@@ -603,10 +602,24 @@ namespace EffekseerRendererUnity
 		UnityRenderParameter rp;
 		rp.RenderMode = 1;
 		rp.IsDistortingMode = 0;
-		rp.ModelPtr = model;
+
+		if (model != nullptr)
+		{
+			auto model_ = (Model*)model;
+			rp.ModelPtr = model_->InternalPtr;
+		}
+		else
+		{
+			rp.ModelPtr = nullptr;
+		}
+
 		rp.TexturePtrs[0] = m_textures[0];
 		rp.ElementCount = materials.size();
 		rp.VertexBufferOffset = exportedInfoBuffer.size();
+
+		rp.ZTest = GetRenderState()->GetActiveState().DepthTest ? 1 : 0;
+		rp.ZWrite = GetRenderState()->GetActiveState().DepthWrite ? 1 : 0;
+		rp.Blend = (int)GetRenderState()->GetActiveState().AlphaBlend;
 
 		for (int i = 0; i < matrixes.size(); i++)
 		{
@@ -625,6 +638,8 @@ namespace EffekseerRendererUnity
 			modelParameter.VColor[3] = colors[i].A / 255.0f;
 			*(UnityModelParameter*)(exportedInfoBuffer.data() + offset) = modelParameter;
 		}
+
+		renderParameters.push_back(rp);
 	}
 
 	Shader* RendererImplemented::GetShader(bool useTexture, bool useDistortion) const

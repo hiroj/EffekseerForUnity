@@ -28,9 +28,12 @@ namespace Effekseer.Internal
 		public ComputeBuffer VertexOffsets;
 		public ComputeBuffer IndexOffsets;
 
+		public List<int> IndexCounts = new List<int>();
 
 		public unsafe void Initialize(byte[] buffer)
 		{
+			int sizeEffekseerVertex = 4 * 15;
+
 			List<int> vertexOffsets = new List<int>();
 			List<int> indexOffsets = new List<int>();
 
@@ -38,6 +41,11 @@ namespace Effekseer.Internal
 			int offset = 0;
 			version = BitConverter.ToInt32(buffer, offset);
 			offset += sizeof(int);
+
+			if(version < 1)
+			{
+				sizeEffekseerVertex -= 4;
+			}
 
 			if (version == 2 || version >= 5)
 			{
@@ -72,7 +80,7 @@ namespace Effekseer.Internal
 				offset += sizeof(int);
 
 				vertexBufferCount += vertexCount;
-				offset += sizeof(InternalVertex) * vertexCount;
+				offset += sizeEffekseerVertex * vertexCount;
 
 				indexOffsets.Add(indexBufferCount);
 
@@ -82,6 +90,8 @@ namespace Effekseer.Internal
 
 				indexBufferCount += 3 * faceCount;
 				offset += sizeof(int) * (3 * faceCount);
+
+				IndexCounts.Add(3 * faceCount);
 			}
 
 			VertexBuffer = new ComputeBuffer(vertexBufferCount, sizeof(Vertex));
@@ -120,7 +130,7 @@ namespace Effekseer.Internal
 					VertexBuffer.SetData(vertex, 0, 0, vertex.Count);
 				}
 
-				offset += sizeof(InternalVertex) * vertexCount;
+				offset += sizeEffekseerVertex * vertexCount;
 
 				index.Clear();
 
@@ -572,10 +582,11 @@ namespace Effekseer.Internal
 
 							prop.SetBuffer("buf_vertex", model.VertexBuffer);
 							prop.SetBuffer("buf_index", model.IndexBuffer);
-
+							prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
+							
 							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
 
-							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
+							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
 						}
 					}
 					else
