@@ -614,7 +614,7 @@ namespace EffekseerRendererUnity
 		}
 
 		rp.TexturePtrs[0] = m_textures[0];
-		rp.ElementCount = materials.size();
+		rp.ElementCount = matrixes.size();
 		rp.VertexBufferOffset = exportedInfoBuffer.size();
 
 		rp.ZTest = GetRenderState()->GetActiveState().DepthTest ? 1 : 0;
@@ -692,11 +692,10 @@ namespace EffekseerRendererUnity
 
 	void* RendererImplemented::FindMaterial()
 	{
-		return materials[0];
+		return nullptr;
 	}
 
 	void RendererImplemented::SetMaterial(void* material)
 	{
-		materials[0] = material;
 	}
 }

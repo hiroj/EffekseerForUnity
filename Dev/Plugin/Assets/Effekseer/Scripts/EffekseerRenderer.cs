@@ -108,26 +108,53 @@ namespace Effekseer.Internal
 
 				vertex.Clear();
 
-				fixed (byte* vs_ = &buffer[offset])
+				if(version < 1)
 				{
-					InternalVertex* vs = (InternalVertex*)vs_;
-
-					for (int vi = 0; vi < vertexCount; vi++)
+					fixed (byte* vs_ = &buffer[offset])
 					{
-						Vertex v;
-						v.Position = vs[vi].Position;
-						v.UV = vs[vi].UV;
-						v.Normal = vs[vi].Normal;
-						v.Tangent = vs[vi].Tangent;
-						v.Binormal = vs[vi].Binormal;
-						v.VColor.r = vs[vi].VColor.r / 255.0f;
-						v.VColor.g = vs[vi].VColor.g / 255.0f;
-						v.VColor.b = vs[vi].VColor.b / 255.0f;
-						v.VColor.a = vs[vi].VColor.a / 255.0f;
-						vertex.Add(v);
-					}
+						InternalVertexV0* vs = (InternalVertexV0*)vs_;
 
-					VertexBuffer.SetData(vertex, 0, 0, vertex.Count);
+						for (int vi = 0; vi < vertexCount; vi++)
+						{
+							Vertex v;
+							v.Position = vs[vi].Position;
+							v.UV = vs[vi].UV;
+							v.Normal = vs[vi].Normal;
+							v.Tangent = vs[vi].Tangent;
+							v.Binormal = vs[vi].Binormal;
+							v.VColor.r = 1.0f;
+							v.VColor.g = 1.0f;
+							v.VColor.b = 1.0f;
+							v.VColor.a = 1.0f;
+							vertex.Add(v);
+						}
+
+						VertexBuffer.SetData(vertex, 0, 0, vertex.Count);
+					}
+				}
+				else
+				{
+					fixed (byte* vs_ = &buffer[offset])
+					{
+						InternalVertex* vs = (InternalVertex*)vs_;
+
+						for (int vi = 0; vi < vertexCount; vi++)
+						{
+							Vertex v;
+							v.Position = vs[vi].Position;
+							v.UV = vs[vi].UV;
+							v.Normal = vs[vi].Normal;
+							v.Tangent = vs[vi].Tangent;
+							v.Binormal = vs[vi].Binormal;
+							v.VColor.r = vs[vi].VColor.r / 255.0f;
+							v.VColor.g = vs[vi].VColor.g / 255.0f;
+							v.VColor.b = vs[vi].VColor.b / 255.0f;
+							v.VColor.a = vs[vi].VColor.a / 255.0f;
+							vertex.Add(v);
+						}
+
+						VertexBuffer.SetData(vertex, 0, 0, vertex.Count);
+					}
 				}
 
 				offset += sizeEffekseerVertex * vertexCount;
@@ -200,6 +227,16 @@ namespace Effekseer.Internal
 		public Vector3 Tangent;
 		public Vector2 UV;
 		public Color32 VColor;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	struct InternalVertexV0
+	{
+		public Vector3 Position;
+		public Vector3 Normal;
+		public Vector3 Binormal;
+		public Vector3 Tangent;
+		public Vector2 UV;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]

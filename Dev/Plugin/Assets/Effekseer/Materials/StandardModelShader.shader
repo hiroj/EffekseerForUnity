@@ -74,6 +74,7 @@ SubShader{
 
 		float3 localPos = v.Position;
 		float4 worldPos = mul(buf_matrix, float4(localPos, 1.0f));
+		//float4 worldPos = float4(localPos, 1.0f);
 		o.pos = mul(UNITY_MATRIX_VP, worldPos);
 		o.uv = v.UV;
 		o.color = (float4)v.Color;

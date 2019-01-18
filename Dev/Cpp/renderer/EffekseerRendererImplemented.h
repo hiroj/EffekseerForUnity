@@ -341,7 +341,6 @@ namespace EffekseerRendererUnity
 		float					m_distortionIntensity = 0.0f;
 		bool					m_isLighting = false;
 
-		std::array<void*, 5> materials;
 		std::vector<uint8_t> exportedVertexBuffer;
 		std::vector<uint8_t> exportedInfoBuffer;
 
