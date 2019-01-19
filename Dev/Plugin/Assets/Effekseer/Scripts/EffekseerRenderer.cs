@@ -623,7 +623,20 @@ namespace Effekseer.Internal
 						key.Blend = (AlphaBlendType)parameter.Blend;
 						key.ZTest = parameter.ZTest > 0;
 						key.ZWrite = parameter.ZWrite > 0;
-						key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
+
+						if(parameter.Culling == 0)
+						{
+							key.Cull = (int)UnityEngine.Rendering.CullMode.Back;
+						}
+						if (parameter.Culling == 1)
+						{
+							key.Cull = (int)UnityEngine.Rendering.CullMode.Front;
+						}
+						if (parameter.Culling == 2)
+						{
+							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
+						}
+
 						var material = materialsModel.GetMaterial(ref key);
 
 						for(int mi = 0; mi < parameter.ElementCount; mi++)
@@ -634,28 +647,43 @@ namespace Effekseer.Internal
 
 							var prop = matPropCol.GetNext();
 
-							prop.SetBuffer("buf_vertex", model.VertexBuffer);
-							prop.SetBuffer("buf_index", model.IndexBuffer);
-							prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
-							
-							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+							if (parameter.IsDistortingMode > 0)
+							{
+								prop.SetBuffer("buf_vertex", model.VertexBuffer);
+								prop.SetBuffer("buf_index", model.IndexBuffer);
+								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
 
-							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
+								prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+								prop.SetTexture("_BackTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs1));
+
+								commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
+							}
+							else
+							{
+								prop.SetBuffer("buf_vertex", model.VertexBuffer);
+								prop.SetBuffer("buf_index", model.IndexBuffer);
+								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
+
+								prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+
+								commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
+							}
 						}
 					}
 					else
 					{
 						var prop = matPropCol.GetNext();
 
+						MaterialKey key = new MaterialKey();
+						key.Blend = (AlphaBlendType)parameter.Blend;
+						key.ZTest = parameter.ZTest > 0;
+						key.ZWrite = parameter.ZWrite > 0;
+						key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
+						var material = materialsDistortion.GetMaterial(ref key);
+
+
 						if (parameter.IsDistortingMode > 0)
 						{
-							MaterialKey key = new MaterialKey();
-							key.Blend = (AlphaBlendType)parameter.Blend;
-							key.ZTest = parameter.ZTest > 0;
-							key.ZWrite = parameter.ZWrite > 0;
-							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
-							var material = materialsDistortion.GetMaterial(ref key);
-
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
 							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
@@ -665,13 +693,6 @@ namespace Effekseer.Internal
 						}
 						else
 						{
-							MaterialKey key = new MaterialKey();
-							key.Blend = (AlphaBlendType)parameter.Blend;
-							key.ZTest = parameter.ZTest > 0;
-							key.ZWrite = parameter.ZWrite > 0;
-							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
-							var material = materials.GetMaterial(ref key);
-
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
 							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
