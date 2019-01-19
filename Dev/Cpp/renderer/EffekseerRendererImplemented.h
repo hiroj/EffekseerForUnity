@@ -35,6 +35,8 @@ extern "C"
 
 		int Blend = 0;
 
+		int Culling = 0;
+
 		//! Texture ptr
 		void* TexturePtrs[4];
 

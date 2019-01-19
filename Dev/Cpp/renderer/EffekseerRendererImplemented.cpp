@@ -585,6 +585,7 @@ namespace EffekseerRendererUnity
 			rp.ZTest = GetRenderState()->GetActiveState().DepthTest ? 1 : 0;
 			rp.ZWrite = GetRenderState()->GetActiveState().DepthWrite ? 1 : 0;
 			rp.Blend = (int)GetRenderState()->GetActiveState().AlphaBlend;
+			rp.Culling = (int)GetRenderState()->GetActiveState().CullingType;
 
 			rp.RenderMode = 0;
 			rp.IsDistortingMode = 0;
@@ -620,6 +621,7 @@ namespace EffekseerRendererUnity
 		rp.ZTest = GetRenderState()->GetActiveState().DepthTest ? 1 : 0;
 		rp.ZWrite = GetRenderState()->GetActiveState().DepthWrite ? 1 : 0;
 		rp.Blend = (int)GetRenderState()->GetActiveState().AlphaBlend;
+		rp.Culling = (int)GetRenderState()->GetActiveState().CullingType;
 
 		for (int i = 0; i < matrixes.size(); i++)
 		{
@@ -675,18 +677,24 @@ namespace EffekseerRendererUnity
 	{
 		if (count > 0)
 		{
-			if (textures[0] != nullptr)
+			for (int i = 0; i < count; i++)
 			{
-				m_textures[0] = textures[0]->UserPtr;
-			}
-			else
-			{
-				m_textures[0] = nullptr;
+				if (textures[i] != nullptr)
+				{
+					m_textures[i] = textures[i]->UserPtr;
+				}
+				else
+				{
+					m_textures[i] = nullptr;
+				}
 			}
 		}
 		else
 		{
 			m_textures[0] = nullptr;
+			m_textures[1] = nullptr;
+			m_textures[2] = nullptr;
+			m_textures[3] = nullptr;
 		}
 	}
 

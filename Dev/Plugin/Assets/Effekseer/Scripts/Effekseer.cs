@@ -201,6 +201,8 @@ namespace Effekseer
 
 			public int Blend;
 
+			public int Culling;
+
 			//! Texture ptr
 			public IntPtr TexturePtrs0;
 			public IntPtr TexturePtrs1;
