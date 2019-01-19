@@ -160,6 +160,12 @@ namespace EffekseerRendererUnity
 	RendererImplemented::RendererImplemented()
 	{
 		m_textures.fill(nullptr);
+
+		backgroundData.Width = 0;
+		backgroundData.Height = 0;
+		backgroundData.TextureFormat = Effekseer::TextureFormatType::ABGR8;
+		backgroundData.UserID = 0;
+		backgroundData.UserPtr = nullptr;
 	}
 	
 	RendererImplemented::~RendererImplemented()
@@ -420,7 +426,12 @@ namespace EffekseerRendererUnity
 
 	Effekseer::TextureData* RendererImplemented::GetBackground()
 	{
-		return (Effekseer::TextureData*)1;
+		return (Effekseer::TextureData*)(&backgroundData);
+	}
+
+	void RendererImplemented::SetBackground(void* image)
+	{
+		backgroundData.UserPtr = image;
 	}
 
 	VertexBuffer* RendererImplemented::GetVertexBuffer()

@@ -346,6 +346,8 @@ namespace EffekseerRendererUnity
 		std::vector<uint8_t> exportedVertexBuffer;
 		std::vector<uint8_t> exportedInfoBuffer;
 
+		Effekseer::TextureData backgroundData;
+
 		EffekseerRenderer::StandardRenderer<RendererImplemented, Shader, Vertex, VertexDistortion>*	m_standardRenderer = nullptr;
 	public:
 		
@@ -520,6 +522,8 @@ namespace EffekseerRendererUnity
 		Effekseer::RenderMode GetRenderMode() override { return Effekseer::RenderMode::Normal; }
 
 		Effekseer::TextureData* GetBackground();
+
+		void SetBackground(void* image);
 
 		VertexBuffer* GetVertexBuffer();
 
