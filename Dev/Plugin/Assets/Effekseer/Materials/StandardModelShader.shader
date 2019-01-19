@@ -5,6 +5,7 @@ Properties{
 	[Enum(UnityEngine.Rendering.BlendMode)]_BlendSrc("Blend Src", Float) = 0
 	[Enum(UnityEngine.Rendering.BlendMode)]_BlendDst("Blend Dst", Float) = 0
 	_BlendOp("Blend Op", Float) = 0
+	_Cull("Cull", Float) = 0
 	[Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("ZTest Mode", Float) = 0
 	[Toggle]_ZWrite("ZWrite", Float) = 0
 }
@@ -15,6 +16,7 @@ SubShader{
 	BlendOp[_BlendOp]
 	ZTest[_ZTest]
 	ZWrite[_ZWrite]
+	Cull[_Cull]
 
 	Pass {
 

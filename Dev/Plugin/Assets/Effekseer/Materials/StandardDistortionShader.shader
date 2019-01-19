@@ -5,6 +5,7 @@
 		[Enum(UnityEngine.Rendering.BlendMode)]_BlendSrc("Blend Src", Float) = 0
 		[Enum(UnityEngine.Rendering.BlendMode)]_BlendDst("Blend Dst", Float) = 0
 		_BlendOp("Blend Op", Float) = 0
+		_Cull("Cull", Float) = 0
 		[Enum(UnityEngine.Rendering.CompareFunction)]_ZTest("ZTest Mode", Float) = 0
 		[Toggle]_ZWrite("ZWrite", Float) = 0
 	}
@@ -15,6 +16,7 @@
 		BlendOp[_BlendOp]
 		ZTest[_ZTest]
 		ZWrite[_ZWrite]
+		Cull[_Cull]
 
 		Pass {
 
@@ -27,6 +29,7 @@
 		#include "UnityCG.cginc"
 
 		sampler2D _ColorTex;
+		sampler2D _BackTex;
 
 		struct SimpleVertex
 		{
@@ -43,6 +46,9 @@
 		struct ps_input
 		{
 			float4 pos : SV_POSITION;
+			float4 posC : POS0;
+			float4 posR : POS1;
+			float4 posU : POS2;
 			float2 uv : UV0;
 			float4 color : COLOR0;
 		};
@@ -64,6 +70,22 @@
 
 			SimpleVertex v = buf_vertex[buf_offset + qind * 4 + v_offset[vind]];
 
+			float4 localBinormal = float4((v.Pos + v.Binormal), 1.0);
+			float4 localTangent = float4((v.Pos + v.Tangent), 1.0);
+			localBinormal = mul(UNITY_MATRIX_V, localBinormal);
+			localTangent = mul(UNITY_MATRIX_V, localTangent);
+			float4 cameraPos = mul(UNITY_MATRIX_V, v.Pos);
+
+			localBinormal = localBinormal / localBinormal.w;
+			localTangent = localTangent / localTangent.w;
+
+			localBinormal = cameraPos + normalize(localBinormal - cameraPos);
+			localTangent = cameraPos + normalize(localTangent - cameraPos);
+
+			o.posC = mul(UNITY_MATRIX_P, cameraPos);
+			o.posR = mul(UNITY_MATRIX_P, localTangent);
+			o.posU = mul(UNITY_MATRIX_P, localBinormal);
+
 			float3 worldPos = v.Pos;
 			o.pos = mul(UNITY_MATRIX_VP, float4(worldPos,1.0f));
 			o.uv = v.UV;
@@ -73,7 +95,19 @@
 
 		float4 frag(ps_input i) : COLOR
 		{
-			return tex2D(_ColorTex, i.uv) * i.color;
+			float2 g_scale = float2(1.0f, 1.0f);
+			float4 color = tex2D(_ColorTex, i.uv);
+			color.w = color.w * i.color.w;
+
+			float2 pos = i.pos.xy / i.pos.w;
+			float2 posU = i.posU.xy / i.posU.w;
+			float2 posR = i.posR.xy / i.posR.w;
+
+			float2 uv = pos + (posR - pos) * (color.x * 2.0 - 1.0) * i.color.x * g_scale.x + (posU - pos) * (color.y * 2.0 - 1.0) * i.color.y * g_scale.x;
+			uv.x = (uv.x + 1.0) * 0.5;
+			uv.y = (uv.y + 1.0) * 0.5;
+
+			return tex2D(_BackTex, i.uv);
 		}
 
 		ENDCG
@@ -82,5 +116,5 @@
 
 		}
 
-			Fallback Off
+	Fallback Off
 }

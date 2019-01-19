@@ -16,7 +16,7 @@ namespace Effekseer.Internal
 
 		CommandBuffer GetCameraCommandBuffer(Camera camera);
 		
-		void OnPreCullEvent(Camera camera);
+		void Render(Camera camera, int? dstID);
 
 		void OnPostRender(Camera camera);
 	}
@@ -270,12 +270,14 @@ namespace Effekseer.Internal
 			public bool ZTest;
 			public bool ZWrite;
 			public AlphaBlendType Blend;
+			public int Cull;
 
 			public int GetKey()
 			{
 				return (int)Blend +
 					(ZTest ? 1 : 0) << 4 +
-					(ZWrite ? 1 : 0) << 5;
+					(ZWrite ? 1 : 0) << 5 +
+					Cull << 6;
 			}
 		}
 
@@ -325,6 +327,7 @@ namespace Effekseer.Internal
 
 				material.SetFloat("_ZTest", key.ZTest ? (float)UnityEngine.Rendering.CompareFunction.LessEqual : (float)UnityEngine.Rendering.CompareFunction.Disabled);
 				material.SetFloat("_ZWrite", key.ZWrite ? 1.0f : 0.0f);
+				material.SetFloat("_Cull", key.Cull);
 
 				materials.Add(id, material);
 
@@ -456,12 +459,12 @@ namespace Effekseer.Internal
 		{
 			if (visible)
 			{
-				Camera.onPreCull += OnPreCullEvent;
+				Camera.onPreCull += Render;
 				Camera.onPostRender += OnPostRender;
 			}
 			else
 			{
-				Camera.onPreCull -= OnPreCullEvent;
+				Camera.onPreCull -= Render;
 				Camera.onPostRender -= OnPostRender;
 			}
 		}
@@ -485,7 +488,12 @@ namespace Effekseer.Internal
 			return null;
 		}
 
-		public void OnPreCullEvent(Camera camera)
+		public void Render(Camera camera)
+		{
+			Render(camera, null);
+		}
+
+		public void Render(Camera camera, int? dstID)
 		{
 			var settings = EffekseerSettings.Instance;
 
@@ -566,12 +574,20 @@ namespace Effekseer.Internal
 			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferBack, path.materiaProps);
 
 			// Distortion
-			if (settings.enableDistortion && path.renderTexture != null)
+			if (settings.enableDistortion && 
+				(path.renderTexture != null || dstID.HasValue))
 			{
 				// Add a blit command that copy to the distortion texture
-				path.commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, path.renderTexture);
-				path.commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
+				if(dstID.HasValue)
+				{
+					path.commandBuffer.Blit(dstID.Value, path.renderTexture);
+					path.commandBuffer.SetRenderTarget(dstID.Value);
+				}
+				else
+				{
+					path.commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, path.renderTexture);
+					path.commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+				}
 			}
 
 			Plugin.EffekseerRenderFront(path.renderId);
@@ -607,6 +623,7 @@ namespace Effekseer.Internal
 						key.Blend = (AlphaBlendType)parameter.Blend;
 						key.ZTest = parameter.ZTest > 0;
 						key.ZWrite = parameter.ZWrite > 0;
+						key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
 						var material = materialsModel.GetMaterial(ref key);
 
 						for(int mi = 0; mi < parameter.ElementCount; mi++)
@@ -636,6 +653,7 @@ namespace Effekseer.Internal
 							key.Blend = (AlphaBlendType)parameter.Blend;
 							key.ZTest = parameter.ZTest > 0;
 							key.ZWrite = parameter.ZWrite > 0;
+							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
 							var material = materialsDistortion.GetMaterial(ref key);
 
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
@@ -650,6 +668,7 @@ namespace Effekseer.Internal
 							key.Blend = (AlphaBlendType)parameter.Blend;
 							key.ZTest = parameter.ZTest > 0;
 							key.ZWrite = parameter.ZWrite > 0;
+							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
 							var material = materials.GetMaterial(ref key);
 
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
@@ -760,12 +779,12 @@ namespace Effekseer.Internal
 		{
 			if (visible)
 			{
-				Camera.onPreCull += OnPreCullEvent;
+				Camera.onPreCull += Render;
 				Camera.onPostRender += OnPostRender;
 			}
 			else
 			{
-				Camera.onPreCull -= OnPreCullEvent;
+				Camera.onPreCull -= Render;
 				Camera.onPostRender -= OnPostRender;
 			}
 		}
@@ -789,7 +808,12 @@ namespace Effekseer.Internal
 			return null;
 		}
 
-		public void OnPreCullEvent(Camera camera)
+		public void Render(Camera camera)
+		{
+			Render(camera, null);
+		}
+
+		public void Render(Camera camera, int? dstID)
 		{
 			var settings = EffekseerSettings.Instance;
 
