@@ -637,8 +637,7 @@ namespace Effekseer.Internal
 							key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
 						}
 
-						var material = materialsModel.GetMaterial(ref key);
-
+						
 						for(int mi = 0; mi < parameter.ElementCount; mi++)
 						{
 							var model = EffekseerSystem.GetCachedModel(parameter.ModelPtr);
@@ -649,6 +648,8 @@ namespace Effekseer.Internal
 
 							if (parameter.IsDistortingMode > 0)
 							{
+								var material = materialsModelDistortion.GetMaterial(ref key);
+
 								prop.SetBuffer("buf_vertex", model.VertexBuffer);
 								prop.SetBuffer("buf_index", model.IndexBuffer);
 								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
@@ -660,6 +661,8 @@ namespace Effekseer.Internal
 							}
 							else
 							{
+								var material = materialsModel.GetMaterial(ref key);
+
 								prop.SetBuffer("buf_vertex", model.VertexBuffer);
 								prop.SetBuffer("buf_index", model.IndexBuffer);
 								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
@@ -679,11 +682,12 @@ namespace Effekseer.Internal
 						key.ZTest = parameter.ZTest > 0;
 						key.ZWrite = parameter.ZWrite > 0;
 						key.Cull = (int)UnityEngine.Rendering.CullMode.Off;
-						var material = materialsDistortion.GetMaterial(ref key);
-
+						
 
 						if (parameter.IsDistortingMode > 0)
 						{
+							var material = materialsDistortion.GetMaterial(ref key);
+
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
 							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
@@ -693,6 +697,8 @@ namespace Effekseer.Internal
 						}
 						else
 						{
+							var material = materials.GetMaterial(ref key);
+
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
 							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
