@@ -111,7 +111,7 @@ Properties{
 			float4 color = tex2D(_ColorTex, i.uv);
 			color.w = color.w * i.color.w;
 
-			float2 pos = i.pos.xy / i.pos.w;
+			float2 pos = i.posC.xy / i.posC.w;
 			float2 posU = i.posU.xy / i.posU.w;
 			float2 posR = i.posR.xy / i.posR.w;
 
@@ -119,7 +119,11 @@ Properties{
 			uv.x = (uv.x + 1.0) * 0.5;
 			uv.y = (uv.y + 1.0) * 0.5;
 
-			color.xyz = tex2D(_BackTex, i.uv).xyz;
+			// Flip
+			uv.y = 1.0 - uv.y;
+
+			color.xyz = tex2D(_BackTex, uv).xyz;
+
 			return color;
 		}
 

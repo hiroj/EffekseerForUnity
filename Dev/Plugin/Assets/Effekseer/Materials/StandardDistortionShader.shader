@@ -74,7 +74,7 @@
 			float4 localTangent = float4((v.Pos + v.Tangent), 1.0);
 			localBinormal = mul(UNITY_MATRIX_V, localBinormal);
 			localTangent = mul(UNITY_MATRIX_V, localTangent);
-			float4 cameraPos = mul(UNITY_MATRIX_V, v.Pos);
+			float4 cameraPos = mul(UNITY_MATRIX_V, float4(v.Pos, 1.0f));
 
 			localBinormal = localBinormal / localBinormal.w;
 			localTangent = localTangent / localTangent.w;
@@ -99,7 +99,7 @@
 			float4 color = tex2D(_ColorTex, i.uv);
 			color.w = color.w * i.color.w;
 
-			float2 pos = i.pos.xy / i.pos.w;
+			float2 pos = i.posC.xy / i.posC.w;
 			float2 posU = i.posU.xy / i.posU.w;
 			float2 posR = i.posR.xy / i.posR.w;
 
@@ -107,7 +107,11 @@
 			uv.x = (uv.x + 1.0) * 0.5;
 			uv.y = (uv.y + 1.0) * 0.5;
 
-			color.xyz = tex2D(_BackTex, i.uv).xyz;
+			// Flip
+			uv.y = 1.0 - uv.y;
+
+			color.xyz = tex2D(_BackTex, uv).xyz;
+
 			return color;
 		}
 
