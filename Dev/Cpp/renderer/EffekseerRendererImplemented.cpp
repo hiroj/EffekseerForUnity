@@ -257,6 +257,9 @@ namespace EffekseerRendererUnity
 		// レンダラーリセット
 		m_standardRenderer->ResetAndRenderingIfRequired();
 
+		// ForUnity
+		exportedVertexBuffer.resize(GetAlignedOffset(exportedVertexBuffer.size(), sizeof(UnityVertex)));
+
 //		// ステートを復元する
 //		if (m_restorationOfStates)
 //		{
@@ -474,7 +477,17 @@ namespace EffekseerRendererUnity
 		//if (mat == nullptr) return;
 
 		// is single ring?
-		auto stanMat = ((Effekseer::Matrix44*)m_stanShader->GetVertexConstantBuffer())[0];
+		Effekseer::Matrix44 stanMat;
+		
+		if (m_isDistorting)
+		{
+			stanMat = ((Effekseer::Matrix44*)m_distortionShader->GetVertexConstantBuffer())[0];
+		}
+		else
+		{
+			stanMat = ((Effekseer::Matrix44*)m_stanShader->GetVertexConstantBuffer())[0];
+		}
+
 		auto cameraMat = m_camera;
 		Effekseer::Matrix44 ringMat;
 
@@ -502,8 +515,7 @@ namespace EffekseerRendererUnity
 		//auto triangles = vertexOffset / 4 * 2;
 		//glDrawElements(GL_TRIANGLES, spriteCount * 6, GL_UNSIGNED_SHORT, (void*)(triangles * 3 * sizeof(GLushort)));
 
-		int32_t startOffset = exportedVertexBuffer.size();
-
+		
 		if (m_isDistorting)
 		{
 			auto intensity = ((float*)m_distortionShader->GetPixelConstantBuffer())[0];
@@ -512,6 +524,7 @@ namespace EffekseerRendererUnity
 			VertexDistortion* vs = (VertexDistortion*)m_vertexBuffer->GetResource();
 
 			exportedVertexBuffer.resize(GetAlignedOffset(exportedVertexBuffer.size(), sizeof(UnityDistortionVertex)));
+			int32_t startOffset = exportedVertexBuffer.size();
 
 			for (int32_t vi = vertexOffset; vi < vertexOffset + spriteCount * 4; vi++)
 			{
@@ -562,6 +575,7 @@ namespace EffekseerRendererUnity
 			Vertex* vs = (Vertex*)m_vertexBuffer->GetResource();
 
 			exportedVertexBuffer.resize(GetAlignedOffset(exportedVertexBuffer.size(), sizeof(UnityVertex)));
+			int32_t startOffset = exportedVertexBuffer.size();
 
 			for (int32_t vi = vertexOffset; vi < vertexOffset + spriteCount * 4; vi++)
 			{

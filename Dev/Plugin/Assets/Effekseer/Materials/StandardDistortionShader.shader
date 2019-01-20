@@ -107,7 +107,8 @@
 			uv.x = (uv.x + 1.0) * 0.5;
 			uv.y = (uv.y + 1.0) * 0.5;
 
-			return tex2D(_BackTex, i.uv);
+			color.xyz = tex2D(_BackTex, i.uv).xyz;
+			return color;
 		}
 
 		ENDCG

@@ -360,7 +360,7 @@ namespace Effekseer.Internal
 
 		private class RenderPath : IDisposable
 		{
-			const int VertexMaxCount = 8192 * 4;
+			const int VertexMaxCount = 8192 * 4 * 2;
 			public Camera camera;
 			public CommandBuffer commandBuffer;
 			public CameraEvent cameraEvent;
@@ -571,7 +571,7 @@ namespace Effekseer.Internal
 
 			// generate render events on this thread
 			Plugin.EffekseerRenderBack(path.renderId);
-			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferBack, path.materiaProps);
+			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferBack, path.materiaProps, path.renderTexture);
 
 			// Distortion
 			if (settings.enableDistortion && 
@@ -591,10 +591,17 @@ namespace Effekseer.Internal
 			}
 
 			Plugin.EffekseerRenderFront(path.renderId);
-			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferFront, path.materiaProps);
+			RenderInternal(path.commandBuffer, path.computeBufferTemp, path.computeBufferFront, path.materiaProps, path.renderTexture);
 		}
 
-		unsafe void RenderInternal(CommandBuffer commandBuffer, byte[] computeBufferTemp, ComputeBuffer computeBuffer, MaterialPropCollection matPropCol)
+		Texture GetCachedTexture(IntPtr key, RenderTexture background)
+		{
+			if (background != null && background.GetNativeTexturePtr() == key) return background;
+
+			return EffekseerSystem.GetCachedTexture(key);
+		}
+
+		unsafe void RenderInternal(CommandBuffer commandBuffer, byte[] computeBufferTemp, ComputeBuffer computeBuffer, MaterialPropCollection matPropCol, RenderTexture background)
 		{
 			var renderParameterCount = Plugin.GetUnityRenderParameterCount();
 			var vertexBufferSize = Plugin.GetUnityRenderVertexBufferCount();
@@ -654,8 +661,10 @@ namespace Effekseer.Internal
 								prop.SetBuffer("buf_index", model.IndexBuffer);
 								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
 
-								prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
-								prop.SetTexture("_BackTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs1));
+								prop.SetTexture("_ColorTex", GetCachedTexture(parameter.TexturePtrs0, background));
+								//prop.SetTexture("_BackTex", GetCachedTexture(parameter.TexturePtrs1, background));
+								//Temp
+								prop.SetTexture("_BackTex", background);
 
 								commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
 							}
@@ -667,7 +676,7 @@ namespace Effekseer.Internal
 								prop.SetBuffer("buf_index", model.IndexBuffer);
 								prop.SetMatrix("buf_matrix", modelParameters[mi].Matrix);
 
-								prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+								prop.SetTexture("_ColorTex", GetCachedTexture(parameter.TexturePtrs0, background));
 
 								commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, model.IndexCounts[0], 1, prop);
 							}
@@ -690,8 +699,10 @@ namespace Effekseer.Internal
 
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexDistortionSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
-							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
-							prop.SetTexture("_BackTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs1));
+							prop.SetTexture("_ColorTex", GetCachedTexture(parameter.TexturePtrs0, background));
+							//prop.SetTexture("_BackTex", GetCachedTexture(parameter.TexturePtrs1, background));
+							//Temp
+							prop.SetTexture("_BackTex", background);
 
 							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
 						}
@@ -701,7 +712,7 @@ namespace Effekseer.Internal
 
 							prop.SetFloat("buf_offset", parameter.VertexBufferOffset / VertexSize);
 							prop.SetBuffer("buf_vertex", computeBuffer);
-							prop.SetTexture("_ColorTex", EffekseerSystem.GetCachedTexture(parameter.TexturePtrs0));
+							prop.SetTexture("_ColorTex", GetCachedTexture(parameter.TexturePtrs0, background));
 
 							commandBuffer.DrawProcedural(new Matrix4x4(), material, 0, MeshTopology.Triangles, parameter.ElementCount * 2 * 3, 1, prop);
 						}
