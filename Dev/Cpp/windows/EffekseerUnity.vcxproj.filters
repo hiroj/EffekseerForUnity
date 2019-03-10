@@ -22,12 +22,6 @@
     <ClCompile Include="..\opengl\EffekseerPluginGL.cpp">
       <Filter>opengl</Filter>
     </ClCompile>
-    <ClCompile Include="..\Device\EffekseerPluginDX9.cpp">
-      <Filter>Device</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Device\EffekseerPluginDX11.cpp">
-      <Filter>Device</Filter>
-    </ClCompile>
     <ClCompile Include="..\renderer\EffekseerRendererIndexBuffer.cpp">
       <Filter>renderer</Filter>
     </ClCompile>
@@ -52,6 +46,21 @@
     <ClCompile Include="..\common\EffekseerPluginNetwork.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphics.cpp">
+      <Filter>graphicsAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsDX11.cpp">
+      <Filter>graphicsAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsDX9.cpp">
+      <Filter>graphicsAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsGL.cpp">
+      <Filter>graphicsAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.cpp">
+      <Filter>graphicsAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">
@@ -63,11 +72,11 @@
     <Filter Include="opengl">
       <UniqueIdentifier>{b1942cf8-d895-48b7-8ab9-e05dfd8f39f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Device">
-      <UniqueIdentifier>{a72ba44a-556a-4468-a388-37707e35bb7d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="renderer">
       <UniqueIdentifier>{e6858b00-366a-44ec-b559-d3b8886038cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphicsAPI">
+      <UniqueIdentifier>{615d1ca3-c260-4222-8bf1-f93487f91892}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -88,12 +97,6 @@
     </ClInclude>
     <ClInclude Include="..\opengl\EffekseerPluginGL.h">
       <Filter>opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Device\EffekseerPluginDX9.h">
-      <Filter>Device</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Device\EffekseerPluginDX11.h">
-      <Filter>Device</Filter>
     </ClInclude>
     <ClInclude Include="..\renderer\EffekseerRendererImplemented.h">
       <Filter>renderer</Filter>
@@ -118,6 +121,21 @@
     </ClInclude>
     <ClInclude Include="..\common\EffekseerPluginNetwork.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphics.h">
+      <Filter>graphicsAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsDX11.h">
+      <Filter>graphicsAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsDX9.h">
+      <Filter>graphicsAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsGL.h">
+      <Filter>graphicsAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.h">
+      <Filter>graphicsAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

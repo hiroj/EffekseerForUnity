@@ -536,6 +536,8 @@ extern "C"
 	}
 }
 
+#ifdef _WIN32
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	bool res = true;
@@ -557,3 +559,5 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	}
 	return res;
 }
+
+#endif
