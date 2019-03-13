@@ -187,7 +187,6 @@
     <ClCompile Include="..\renderer\EffekseerRendererShader.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererTextureLoader.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererVertexBuffer.cpp" />
-    <ClCompile Include="EffekseerPluginLoaderWin.cpp" />
     <ClCompile Include="EffekseerPlugin.cpp" />
   </ItemGroup>
   <ItemGroup>
