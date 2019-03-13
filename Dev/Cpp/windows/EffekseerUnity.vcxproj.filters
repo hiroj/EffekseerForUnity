@@ -4,9 +4,6 @@
     <ClCompile Include="..\common\EffekseerPluginCommon.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="EffekseerPluginWin.cpp">
-      <Filter>windows</Filter>
-    </ClCompile>
     <ClCompile Include="EffekseerPluginLoaderWin.cpp">
       <Filter>windows</Filter>
     </ClCompile>
@@ -60,6 +57,9 @@
     </ClCompile>
     <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.cpp">
       <Filter>graphicsAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="EffekseerPlugin.cpp">
+      <Filter>windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

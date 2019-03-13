@@ -1,4 +1,4 @@
-
+﻿
 #pragma once
 
 #include "../common/EffekseerPluginModel.h"
@@ -17,7 +17,7 @@ namespace EffekseerPlugin
 class Graphics
 {
 public:
-	static Graphics* Create(UnityGfxRenderer renderer);
+	static Graphics* Create(UnityGfxRenderer renderer, bool isUnityRenderer, bool doFallback);
 
 	virtual bool Initialize(IUnityInterfaces* unityInterface) = 0;
 

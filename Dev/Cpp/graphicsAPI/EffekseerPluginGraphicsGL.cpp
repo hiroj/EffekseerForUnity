@@ -1,4 +1,4 @@
-
+ï»¿
 #include "EffekseerPluginGraphicsGL.h"
 #include <algorithm>
 #include <assert.h>
@@ -35,7 +35,7 @@ TextureLoaderGL::~TextureLoaderGL() {}
 
 Effekseer::TextureData* TextureLoaderGL::Load(const EFK_CHAR* path, Effekseer::TextureType textureType)
 {
-	// ƒŠƒ\[ƒXƒe[ƒuƒ‹‚ğŒŸõ‚µ‚Ä‘¶İ‚µ‚½‚ç‚»‚ê‚ğg‚¤
+	// ãƒªã‚½ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’æ¤œç´¢ã—ã¦å­˜åœ¨ã—ãŸã‚‰ãã‚Œã‚’ä½¿ã†
 	auto it = resources.find((const char16_t*)path);
 	if (it != resources.end())
 	{
@@ -43,14 +43,14 @@ Effekseer::TextureData* TextureLoaderGL::Load(const EFK_CHAR* path, Effekseer::T
 		return &it->second.texture;
 	}
 
-	// Unity‚ÅƒeƒNƒXƒ`ƒƒ‚ğƒ[ƒh
+	// Unityã§ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ­ãƒ¼ãƒ‰
 	int32_t width, height, format;
 	int64_t textureID = reinterpret_cast<int64_t>(load((const char16_t*)path, &width, &height, &format));
 	if (textureID == 0)
 	{
 		return nullptr;
 	}
-	// ƒŠƒ\[ƒXƒe[ƒuƒ‹‚É’Ç‰Á
+	// ãƒªã‚½ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒ–ãƒ«ã«è¿½åŠ 
 	auto added = resources.insert(std::make_pair((const char16_t*)path, TextureResource()));
 	TextureResource& res = added.first->second;
 
@@ -62,7 +62,7 @@ Effekseer::TextureData* TextureLoaderGL::Load(const EFK_CHAR* path, Effekseer::T
 #if !defined(_WIN32)
 	if (g_UnityRendererType != kUnityGfxRendererOpenGLES20 || (IsPowerOfTwo(res.texture.Width) && IsPowerOfTwo(res.texture.Height)))
 	{
-		// ƒeƒNƒXƒ`ƒƒ‚Ìƒ~ƒbƒvƒ}ƒbƒv‚ğ¶¬‚·‚é
+		// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒŸãƒƒãƒ—ãƒãƒƒãƒ—ã‚’ç”Ÿæˆã™ã‚‹
 		glBindTexture(GL_TEXTURE_2D, (GLuint)textureID);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -81,7 +81,7 @@ void TextureLoaderGL::Unload(Effekseer::TextureData* source)
 		return;
 	}
 
-	// ƒAƒ“ƒ[ƒh‚·‚éƒeƒNƒXƒ`ƒƒ‚ğŒŸõ
+	// ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’æ¤œç´¢
 	auto it = std::find_if(resources.begin(), resources.end(), [source](const std::pair<std::u16string, TextureResource>& pair) {
 		return &pair.second.texture == source;
 	});
@@ -90,11 +90,11 @@ void TextureLoaderGL::Unload(Effekseer::TextureData* source)
 		return;
 	}
 
-	// QÆƒJƒEƒ“ƒ^‚ª0‚É‚È‚Á‚½‚çÀÛ‚ÉƒAƒ“ƒ[ƒh
+	// å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿ãŒ0ã«ãªã£ãŸã‚‰å®Ÿéš›ã«ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰
 	it->second.referenceCount--;
 	if (it->second.referenceCount <= 0)
 	{
-		// Unity‘¤‚ÅƒAƒ“ƒ[ƒh
+		// Unityå´ã§ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰
 		unload(it->first.c_str(), textureData2NativePtr[source]);
 		textureData2NativePtr.erase(source);
 		resources.erase(it);

@@ -1,5 +1,7 @@
 ﻿
 #include "EffekseerPluginGraphicsDX11.h"
+#include "../unity/IUnityInterface.h"
+#include "../unity/IUnityGraphics.h"
 #include "../unity/IUnityGraphicsD3D11.h"
 #include <algorithm>
 #include <assert.h>
