@@ -55,16 +55,13 @@
     <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.cpp">
       <Filter>graphicsAPI</Filter>
     </ClCompile>
-    <ClCompile Include="EffekseerPlugin.cpp">
-      <Filter>windows</Filter>
+    <ClCompile Include="..\common\EffekseerPlugin.cpp">
+      <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="common">
       <UniqueIdentifier>{abadf776-f0f6-47a9-9c92-bbee07c4ffce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="windows">
-      <UniqueIdentifier>{b9878b58-31ae-47b0-a182-5ee813e5e702}</UniqueIdentifier>
     </Filter>
     <Filter Include="opengl">
       <UniqueIdentifier>{b1942cf8-d895-48b7-8ab9-e05dfd8f39f8}</UniqueIdentifier>

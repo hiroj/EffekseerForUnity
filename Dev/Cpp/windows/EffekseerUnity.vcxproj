@@ -169,6 +169,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\EffekseerPlugin.cpp" />
     <ClCompile Include="..\common\EffekseerPluginCommon.cpp" />
     <ClCompile Include="..\common\EffekseerPluginModel.cpp" />
     <ClCompile Include="..\common\EffekseerPluginNetwork.cpp" />
@@ -187,7 +188,6 @@
     <ClCompile Include="..\renderer\EffekseerRendererShader.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererTextureLoader.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererVertexBuffer.cpp" />
-    <ClCompile Include="EffekseerPlugin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\EffekseerPluginCommon.h" />

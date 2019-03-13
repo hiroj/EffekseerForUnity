@@ -1,153 +1,152 @@
-﻿#pragma warning(disable : 4005)
-
+﻿
 #include <assert.h>
+
+#ifdef _WIN32
+#pragma warning(disable : 4005)
 #include <shlwapi.h>
 #include <windows.h>
+#pragma comment(lib, "shlwapi.lib")
+#endif
 
 #include "Effekseer.h"
 
-#include "EffekseerRendererDX11.h"
-#include "EffekseerRendererDX9.h"
-#include "EffekseerRendererGL.h"
-
 #include "../common/EffekseerPluginCommon.h"
 #include "../unity/IUnityGraphics.h"
+
+// OpenGL
+#if defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
+#include "EffekseerRendererGL.h"
+#endif
+
+// DirectX
+#ifdef _WIN32
+#include "EffekseerRendererDX11.h"
+#include "EffekseerRendererDX9.h"
 #include "../unity/IUnityGraphicsD3D11.h"
 #include "../unity/IUnityGraphicsD3D9.h"
-
-#include "../opengl/EffekseerPluginGL.h"
+#endif
 
 #include "../common/EffekseerPluginModel.h"
 #include "../common/EffekseerPluginTexture.h"
 #include "../graphicsAPI/EffekseerPluginGraphics.h"
-#include "../renderer/EffekseerRendererImplemented.h"
-
-#ifdef _WIN32
-#pragma comment(lib, "shlwapi.lib")
-#endif
 
 namespace EffekseerPlugin
 {
-int32_t g_maxInstances = 0;
-int32_t g_maxSquares = 0;
-RendererType g_rendererType = RendererType::Native;
+	int32_t g_maxInstances = 0;
+	int32_t g_maxSquares = 0;
+	RendererType g_rendererType = RendererType::Native;
 
-bool g_reversedDepth = false;
-bool g_isRightHandedCoordinate = false;
+	bool g_reversedDepth = false;
+	bool g_isRightHandedCoordinate = false;
 
-IUnityInterfaces* g_UnityInterfaces = NULL;
-IUnityGraphics* g_UnityGraphics = NULL;
-UnityGfxRenderer g_UnityRendererType = kUnityGfxRendererNull;
-Graphics* g_graphics = nullptr;
+	IUnityInterfaces* g_UnityInterfaces = NULL;
+	IUnityGraphics* g_UnityGraphics = NULL;
+	UnityGfxRenderer g_UnityRendererType = kUnityGfxRendererNull;
+	Graphics* g_graphics = nullptr;
 
-Effekseer::Manager* g_EffekseerManager = NULL;
-EffekseerRenderer::Renderer* g_EffekseerRenderer = NULL;
+	Effekseer::Manager* g_EffekseerManager = NULL;
+	EffekseerRenderer::Renderer* g_EffekseerRenderer = NULL;
 
-bool g_isInitialized = false;
+	bool g_isRunning = false;
 
-void InitRenderer()
-{
-	if (g_EffekseerManager == nullptr)
-		return;
-
-	if (g_rendererType == RendererType::Native)
+	bool IsRequiredToInitOnRenderThread()
 	{
-		g_graphics = Graphics::Create(g_UnityRendererType, false, true);
-		g_graphics->Initialize(g_UnityInterfaces);
+		if (g_rendererType == RendererType::Unity) return false;
 
-		g_EffekseerRenderer = g_graphics->CreateRenderer(g_maxSquares, g_reversedDepth);
+		if (g_UnityRendererType == UnityGfxRenderer::kUnityGfxRendererOpenGL) return true;
+		if (g_UnityRendererType == UnityGfxRenderer::kUnityGfxRendererOpenGLCore) return true;
+		if (g_UnityRendererType == UnityGfxRenderer::kUnityGfxRendererOpenGLES20) return true;
+		if (g_UnityRendererType == UnityGfxRenderer::kUnityGfxRendererOpenGLES30) return true;
 
-		g_EffekseerRenderer->SetTextureUVStyle(EffekseerRenderer::UVStyle::VerticalFlipped);
-		g_EffekseerRenderer->SetBackgroundTextureUVStyle(EffekseerRenderer::UVStyle::VerticalFlipped);
+		return false;
 	}
-	else if (g_rendererType == RendererType::Unity)
+
+	void InitRenderer()
 	{
-		g_graphics = Graphics::Create(g_UnityRendererType, true, true);
-		g_graphics->Initialize(g_UnityInterfaces);
+		if (g_EffekseerManager == nullptr)
+			return;
 
-		g_EffekseerRenderer = g_graphics->CreateRenderer(g_maxSquares, g_reversedDepth);
-
-		auto renderer = EffekseerRendererUnity::RendererImplemented::Create();
-		if (renderer->Initialize(g_maxSquares))
+		if (g_rendererType == RendererType::Native)
 		{
-			g_EffekseerRenderer = renderer;
+			g_EffekseerRenderer = g_graphics->CreateRenderer(g_maxSquares, g_reversedDepth);
+
+			g_EffekseerRenderer->SetTextureUVStyle(EffekseerRenderer::UVStyle::VerticalFlipped);
+			g_EffekseerRenderer->SetBackgroundTextureUVStyle(EffekseerRenderer::UVStyle::VerticalFlipped);
 		}
-		else
+		else if (g_rendererType == RendererType::Unity)
 		{
-			ES_SAFE_RELEASE(renderer);
-			ES_SAFE_DELETE(g_graphics);
+			g_EffekseerRenderer = g_graphics->CreateRenderer(g_maxSquares, g_reversedDepth);
 		}
+
+		if (g_EffekseerRenderer == nullptr)
+		{
+			return;
+		}
+
+		g_EffekseerManager->SetSpriteRenderer(g_EffekseerRenderer->CreateSpriteRenderer());
+		g_EffekseerManager->SetRibbonRenderer(g_EffekseerRenderer->CreateRibbonRenderer());
+		g_EffekseerManager->SetRingRenderer(g_EffekseerRenderer->CreateRingRenderer());
+		g_EffekseerManager->SetTrackRenderer(g_EffekseerRenderer->CreateTrackRenderer());
+		g_EffekseerManager->SetModelRenderer(g_EffekseerRenderer->CreateModelRenderer());
 	}
 
-	if (g_EffekseerRenderer == nullptr)
+	void TermRenderer()
 	{
-		return;
-	}
-
-	g_EffekseerManager->SetSpriteRenderer(g_EffekseerRenderer->CreateSpriteRenderer());
-	g_EffekseerManager->SetRibbonRenderer(g_EffekseerRenderer->CreateRibbonRenderer());
-	g_EffekseerManager->SetRingRenderer(g_EffekseerRenderer->CreateRingRenderer());
-	g_EffekseerManager->SetTrackRenderer(g_EffekseerRenderer->CreateTrackRenderer());
-	g_EffekseerManager->SetModelRenderer(g_EffekseerRenderer->CreateModelRenderer());
-}
-
-void TermRenderer()
-{
 #ifdef _WIN32
-	for (int i = 0; i < MAX_RENDER_PATH; i++)
-	{
-		if (g_UnityRendererType == kUnityGfxRendererD3D11)
+		for (int i = 0; i < MAX_RENDER_PATH; i++)
 		{
-			if (renderSettings[i].backgroundTexture)
+			if (g_UnityRendererType == kUnityGfxRendererD3D11)
 			{
-				((ID3D11ShaderResourceView*)renderSettings[i].backgroundTexture)->Release();
+				if (renderSettings[i].backgroundTexture)
+				{
+					((ID3D11ShaderResourceView*)renderSettings[i].backgroundTexture)->Release();
+				}
 			}
+			renderSettings[i].backgroundTexture = nullptr;
 		}
-		renderSettings[i].backgroundTexture = nullptr;
-	}
 #endif
 
-	if (g_EffekseerRenderer != NULL)
-	{
-		g_EffekseerRenderer->Destroy();
-		g_EffekseerRenderer = NULL;
+		if (g_EffekseerRenderer != NULL)
+		{
+			g_EffekseerRenderer->Destroy();
+			g_EffekseerRenderer = NULL;
+		}
 	}
 
-	if (g_graphics != nullptr)
+	void SetBackGroundTexture(void* backgroundTexture)
 	{
-		g_graphics->Shutdown(g_UnityInterfaces);
-	}
-
-	ES_SAFE_DELETE(g_graphics);
-}
-
-void SetBackGroundTexture(void* backgroundTexture)
-{
-	assert(g_graphics != nullptr);
-	g_graphics->SetBackGroundTextureToRenderer(g_EffekseerRenderer, backgroundTexture);
-}
-
-UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
-{
-	switch (eventType)
-	{
-	case kUnityGfxDeviceEventInitialize:
-		g_UnityRendererType = g_UnityGraphics->GetRenderer();
-		break;
-	case kUnityGfxDeviceEventShutdown:
-		TermRenderer();
-		g_UnityRendererType = kUnityGfxRendererNull;
-		break;
-	case kUnityGfxDeviceEventBeforeReset:
 		if (g_graphics != nullptr)
-			g_graphics->BeforeReset(g_UnityInterfaces);
-		break;
-	case kUnityGfxDeviceEventAfterReset:
-		if (g_graphics != nullptr)
-			g_graphics->AfterReset(g_UnityInterfaces);
-		break;
+			g_graphics->SetBackGroundTextureToRenderer(g_EffekseerRenderer, backgroundTexture);
 	}
-}
+
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API OnGraphicsDeviceEvent(UnityGfxDeviceEventType eventType)
+	{
+		switch (eventType)
+		{
+		case kUnityGfxDeviceEventInitialize:
+			g_UnityRendererType = g_UnityGraphics->GetRenderer();
+			break;
+		case kUnityGfxDeviceEventShutdown:
+			TermRenderer();
+			g_UnityRendererType = kUnityGfxRendererNull;
+
+			if (g_graphics != nullptr)
+			{
+				g_graphics->Shutdown(g_UnityInterfaces);
+				ES_SAFE_DELETE(g_graphics);
+			}
+
+			break;
+		case kUnityGfxDeviceEventBeforeReset:
+			if (g_graphics != nullptr)
+				g_graphics->BeforeReset(g_UnityInterfaces);
+			break;
+		case kUnityGfxDeviceEventAfterReset:
+			if (g_graphics != nullptr)
+				g_graphics->AfterReset(g_UnityInterfaces);
+			break;
+		}
+	}
 } // namespace EffekseerPlugin
 
 using namespace EffekseerPlugin;
@@ -176,7 +175,7 @@ extern "C"
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EffekseerRender(int renderId)
 	{
-		if (g_isInitialized == false)
+		if (!g_isRunning)
 		{
 			if (g_EffekseerRenderer != nullptr)
 			{
@@ -276,7 +275,7 @@ extern "C"
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EffekseerRenderBack(int renderId)
 	{
-		if (g_isInitialized == false)
+		if (!g_isRunning)
 		{
 			if (g_EffekseerRenderer != nullptr)
 			{
@@ -363,10 +362,8 @@ extern "C"
 	UNITY_INTERFACE_EXPORT UnityRenderingEvent UNITY_INTERFACE_API EffekseerGetRenderBackFunc(int renderId) { return EffekseerRenderBack; }
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API
-	EffekseerInit(int maxInstances, int maxSquares, int reversedDepth, int isRightHandedCoordinate, int rendererType)
+		EffekseerInit(int maxInstances, int maxSquares, int reversedDepth, int isRightHandedCoordinate, int rendererType)
 	{
-		g_isInitialized = true;
-
 		g_maxInstances = maxInstances;
 		g_maxSquares = maxSquares;
 		g_reversedDepth = reversedDepth != 0;
@@ -384,7 +381,28 @@ extern "C"
 			g_EffekseerManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 		}
 
-		InitRenderer();
+		assert(g_graphics == nullptr);
+		if (g_rendererType == RendererType::Native)
+		{
+			g_graphics = Graphics::Create(g_UnityRendererType, false, true);
+			g_graphics->Initialize(g_UnityInterfaces);
+		}
+		else
+		{
+			g_graphics = Graphics::Create(g_UnityRendererType, true, true);
+			g_graphics->Initialize(g_UnityInterfaces);
+		}
+
+		g_isRunning = true;
+
+		if (IsRequiredToInitOnRenderThread())
+		{
+			// initialize on render thread
+		}
+		else
+		{
+			InitRenderer();
+		}
 	}
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EffekseerTerm()
@@ -395,9 +413,16 @@ extern "C"
 			g_EffekseerManager = NULL;
 		}
 
-		TermRenderer();
+		if (IsRequiredToInitOnRenderThread())
+		{
+			// term on render thread
+		}
+		else
+		{
+			TermRenderer();
+		}
 
-		g_isInitialized = false;
+		g_isRunning = false;
 	}
 
 	// 歪み用テクスチャ設定
@@ -411,14 +436,16 @@ extern "C"
 
 	Effekseer::TextureLoader* TextureLoader::Create(TextureLoaderLoad load, TextureLoaderUnload unload)
 	{
-		assert(g_graphics != nullptr);
-		return g_graphics->Create(load, unload);
+		if (g_graphics != nullptr)
+			return g_graphics->Create(load, unload);
+		return nullptr;
 	}
 
 	Effekseer::ModelLoader* ModelLoader::Create(ModelLoaderLoad load, ModelLoaderUnload unload)
 	{
-		assert(g_graphics != nullptr);
-		return g_graphics->Create(load, unload);
+		if (g_graphics != nullptr)
+			return g_graphics->Create(load, unload);
+		return nullptr;
 	}
 }
 
