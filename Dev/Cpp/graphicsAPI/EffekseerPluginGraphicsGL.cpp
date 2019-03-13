@@ -16,9 +16,10 @@ class TextureLoaderGL : public TextureLoader
 
 	std::map<std::u16string, TextureResource> resources;
 	std::map<void*, void*> textureData2NativePtr;
+	UnityGfxRenderer gfxRenderer;
 
 public:
-	TextureLoaderGL(TextureLoaderLoad load, TextureLoaderUnload unload);
+	TextureLoaderGL(TextureLoaderLoad load, TextureLoaderUnload unload, UnityGfxRenderer renderer);
 
 	virtual ~TextureLoaderGL();
 
@@ -29,7 +30,7 @@ public:
 
 bool IsPowerOfTwo(uint32_t x) { return (x & (x - 1)) == 0; }
 
-TextureLoaderGL::TextureLoaderGL(TextureLoaderLoad load, TextureLoaderUnload unload) : TextureLoader(load, unload) {}
+TextureLoaderGL::TextureLoaderGL(TextureLoaderLoad load, TextureLoaderUnload unload, UnityGfxRenderer renderer) : TextureLoader(load, unload), gfxRenderer(renderer) {}
 
 TextureLoaderGL::~TextureLoaderGL() {}
 
@@ -60,7 +61,7 @@ Effekseer::TextureData* TextureLoaderGL::Load(const EFK_CHAR* path, Effekseer::T
 
 	res.texture.UserID = textureID;
 #if !defined(_WIN32)
-	if (g_UnityRendererType != kUnityGfxRendererOpenGLES20 || (IsPowerOfTwo(res.texture.Width) && IsPowerOfTwo(res.texture.Height)))
+	if (gfxRenderer != kUnityGfxRendererOpenGLES20 || (IsPowerOfTwo(res.texture.Width) && IsPowerOfTwo(res.texture.Height)))
 	{
 		// テクスチャのミップマップを生成する
 		glBindTexture(GL_TEXTURE_2D, (GLuint)textureID);
@@ -150,7 +151,7 @@ void GraphicsGL::EffekseerSetBackGroundTexture(int renderId, void* texture) { re
 
 Effekseer::TextureLoader* GraphicsGL::Create(TextureLoaderLoad load, TextureLoaderUnload unload)
 {
-	return new TextureLoaderGL(load, unload);
+	return new TextureLoaderGL(load, unload, gfxRenderer);
 }
 
 Effekseer::ModelLoader* GraphicsGL::Create(ModelLoaderLoad load, ModelLoaderUnload unload)

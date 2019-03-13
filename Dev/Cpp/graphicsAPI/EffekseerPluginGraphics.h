@@ -19,6 +19,10 @@ class Graphics
 public:
 	static Graphics* Create(UnityGfxRenderer renderer, bool isUnityRenderer, bool doFallback);
 
+	Graphics() = default;
+
+	virtual ~Graphics() = default;
+
 	virtual bool Initialize(IUnityInterfaces* unityInterface) = 0;
 
 	virtual void AfterReset(IUnityInterfaces* unityInterface) {}
