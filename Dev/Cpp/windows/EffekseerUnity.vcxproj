@@ -179,8 +179,6 @@
     <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsDX9.cpp" />
     <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsGL.cpp" />
     <ClCompile Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.cpp" />
-    <ClCompile Include="..\opengl\EffekseerPluginGL.cpp" />
-    <ClCompile Include="..\opengl\EffekseerPluginLoaderGL.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererImplemented.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererIndexBuffer.cpp" />
     <ClCompile Include="..\renderer\EffekseerRendererModelLoader.cpp" />
@@ -200,8 +198,6 @@
     <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphics.h" />
     <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsGL.h" />
     <ClInclude Include="..\graphicsAPI\EffekseerPluginGraphicsUnity.h" />
-    <ClInclude Include="..\opengl\EffekseerPluginGL.h" />
-    <ClInclude Include="..\opengl\EffekseerPluginLoaderGL.h" />
     <ClInclude Include="..\renderer\EffekseerRendererImplemented.h" />
     <ClInclude Include="..\renderer\EffekseerRendererIndexBuffer.h" />
     <ClInclude Include="..\renderer\EffekseerRendererModelLoader.h" />

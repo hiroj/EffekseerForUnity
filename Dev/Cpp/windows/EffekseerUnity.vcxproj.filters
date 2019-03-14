@@ -10,12 +10,6 @@
     <ClCompile Include="..\common\EffekseerPluginModel.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\opengl\EffekseerPluginLoaderGL.cpp">
-      <Filter>opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\opengl\EffekseerPluginGL.cpp">
-      <Filter>opengl</Filter>
-    </ClCompile>
     <ClCompile Include="..\renderer\EffekseerRendererIndexBuffer.cpp">
       <Filter>renderer</Filter>
     </ClCompile>
@@ -63,9 +57,6 @@
     <Filter Include="common">
       <UniqueIdentifier>{abadf776-f0f6-47a9-9c92-bbee07c4ffce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="opengl">
-      <UniqueIdentifier>{b1942cf8-d895-48b7-8ab9-e05dfd8f39f8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="renderer">
       <UniqueIdentifier>{e6858b00-366a-44ec-b559-d3b8886038cc}</UniqueIdentifier>
     </Filter>
@@ -85,12 +76,6 @@
     </ClInclude>
     <ClInclude Include="..\common\EffekseerPluginTexture.h">
       <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\opengl\EffekseerPluginLoaderGL.h">
-      <Filter>opengl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\opengl\EffekseerPluginGL.h">
-      <Filter>opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\renderer\EffekseerRendererImplemented.h">
       <Filter>renderer</Filter>
