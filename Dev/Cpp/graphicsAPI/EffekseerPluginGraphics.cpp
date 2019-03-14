@@ -5,6 +5,9 @@
 #ifdef _WIN32
 #include "EffekseerPluginGraphicsDX11.h"
 #include "EffekseerPluginGraphicsDX9.h"
+#endif
+
+#if defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
 #include "EffekseerPluginGraphicsGL.h"
 #endif
 
@@ -27,13 +30,14 @@ Graphics* Graphics::Create(UnityGfxRenderer renderer, bool isUnityRenderer, bool
 	{
 		return new GraphicsDX11();
 	}
+#endif
 
+#if defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
 	if (renderer == UnityGfxRenderer::kUnityGfxRendererOpenGLCore || renderer == UnityGfxRenderer::kUnityGfxRendererOpenGL ||
 		renderer == UnityGfxRenderer::kUnityGfxRendererOpenGLES20 || renderer == UnityGfxRenderer::kUnityGfxRendererOpenGLES30)
 	{
 		return new GraphicsGL(renderer);
 	}
-
 #endif
 
 	if (doFallback)
