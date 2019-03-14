@@ -213,7 +213,7 @@ Effekseer::TextureLoader* GraphicsDX11::Create(TextureLoaderLoad load, TextureLo
 
 Effekseer::ModelLoader* GraphicsDX11::Create(ModelLoaderLoad load, ModelLoaderUnload unload)
 {
-	auto loader = (ModelLoader*)ModelLoader::Create(load, unload);
+	auto loader = new ModelLoader(load, unload);
 	auto internalLoader = EffekseerRendererDX11::CreateModelLoader(d3d11Device, loader->GetFileInterface());
 	loader->SetInternalLoader(internalLoader);
 	return loader;

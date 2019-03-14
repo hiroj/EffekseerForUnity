@@ -113,7 +113,7 @@ Effekseer::TextureLoader* GraphicsDX9::Create(TextureLoaderLoad load, TextureLoa
 
 Effekseer::ModelLoader* GraphicsDX9::Create(ModelLoaderLoad load, ModelLoaderUnload unload)
 {
-	auto loader = (ModelLoader*)ModelLoader::Create(load, unload);
+	auto loader = new ModelLoader(load, unload);
 	auto internalLoader = EffekseerRendererDX9::CreateModelLoader(d3d9Device, loader->GetFileInterface());
 	loader->SetInternalLoader(internalLoader);
 	return loader;

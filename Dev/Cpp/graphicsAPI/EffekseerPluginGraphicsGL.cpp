@@ -156,7 +156,7 @@ Effekseer::TextureLoader* GraphicsGL::Create(TextureLoaderLoad load, TextureLoad
 
 Effekseer::ModelLoader* GraphicsGL::Create(ModelLoaderLoad load, ModelLoaderUnload unload)
 {
-	auto loader = (ModelLoader*)ModelLoader::Create(load, unload);
+	auto loader = new ModelLoader(load, unload);
 	auto internalLoader = EffekseerRendererGL::CreateModelLoader(loader->GetFileInterface());
 	loader->SetInternalLoader(internalLoader);
 	return loader;
