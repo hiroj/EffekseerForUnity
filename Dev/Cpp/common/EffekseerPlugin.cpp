@@ -1,4 +1,4 @@
-﻿
+
 #include <assert.h>
 
 #ifdef _WIN32
@@ -12,6 +12,10 @@
 
 #include "../common/EffekseerPluginCommon.h"
 #include "../unity/IUnityGraphics.h"
+
+#ifdef __APPLE__
+#import<TargetConditionals.h>
+#endif
 
 // OpenGL
 #if defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__) || defined(EMSCRIPTEN)
@@ -35,6 +39,7 @@ typedef void(UNITY_INTERFACE_API* PluginLoadFunc)(IUnityInterfaces* unityInterfa
 typedef void(UNITY_INTERFACE_API* PluginUnloadFunc)();
 
 extern "C" void UnityRegisterRenderingPlugin(PluginLoadFunc loadPlugin, PluginUnloadFunc unloadPlugin);
+extern "C" void UnityRegisterRenderingPluginV5(PluginLoadFunc loadPlugin, PluginUnloadFunc unloadPlugin);
 
 extern "C"
 {
@@ -175,12 +180,14 @@ extern "C"
 {
 	static bool g_IsEffekseerPluginRegistered = false;
 
-	void RegisterPlugin()
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API RegisterPlugin()
 	{
 		if (g_IsEffekseerPluginRegistered)
 			return;
-
-#if (defined(__APPLE__) && (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)) || defined(EMSCRIPTEN) || defined(_SWITCH)
+        
+#if (defined(__APPLE__) && (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR))
+        UnityRegisterRenderingPluginV5(UnityPluginLoad, UnityPluginUnload);
+#elif defined(EMSCRIPTEN) || defined(_SWITCH)
 		UnityRegisterRenderingPlugin(UnityPluginLoad, UnityPluginUnload);
 #else
 		printf("Warning : Check preprocesser.\n");
