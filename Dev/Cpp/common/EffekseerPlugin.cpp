@@ -30,6 +30,21 @@
 #include "../common/EffekseerPluginTexture.h"
 #include "../graphicsAPI/EffekseerPluginGraphics.h"
 
+// for static
+typedef void(UNITY_INTERFACE_API* PluginLoadFunc)(IUnityInterfaces* unityInterfaces);
+typedef void(UNITY_INTERFACE_API* PluginUnloadFunc)();
+
+extern "C" void UnityRegisterRenderingPlugin(PluginLoadFunc loadPlugin, PluginUnloadFunc unloadPlugin);
+
+extern "C"
+{
+	// Unity plugin load event
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* unityInterfaces);
+
+	// Unity plugin unload event
+	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginUnload();
+}
+
 namespace EffekseerPlugin
 {
 int32_t g_maxInstances = 0;
@@ -158,6 +173,22 @@ using namespace EffekseerPlugin;
 
 extern "C"
 {
+	static bool g_IsEffekseerPluginRegistered = false;
+
+	void RegisterPlugin()
+	{
+		if (g_IsEffekseerPluginRegistered)
+			return;
+
+#if (defined(__APPLE__) && (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)) || defined(EMSCRIPTEN) || defined(_SWITCH)
+		UnityRegisterRenderingPlugin(UnityPluginLoad, UnityPluginUnload);
+#else
+		printf("Warning : Check preprocesser.\n");
+#endif
+
+		g_IsEffekseerPluginRegistered = true;
+	}
+
 	// Unity plugin load event
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* unityInterfaces)
 	{

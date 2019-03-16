@@ -176,6 +176,10 @@ namespace Effekseer
 				Debug.LogError("[Effekseer] EffekseerSystem instance is already found.");
 			}
 
+#if (UNITY_WEBGL || UNITY_IOS || UNITY_SWITCH) && !UNITY_EDITOR
+			Plugin.RegisterPlugin();
+#endif
+
 			Instance = this;
 			
 			var settings = EffekseerSettings.Instance;
