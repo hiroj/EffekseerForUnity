@@ -14,7 +14,7 @@
 #include "../unity/IUnityGraphics.h"
 
 #ifdef __APPLE__
-#import<TargetConditionals.h>
+#import <TargetConditionals.h>
 #endif
 
 // OpenGL
@@ -61,7 +61,14 @@ bool g_isRightHandedCoordinate = false;
 
 IUnityInterfaces* g_UnityInterfaces = NULL;
 IUnityGraphics* g_UnityGraphics = NULL;
+
+#if (defined(__APPLE__) && (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)) || defined(EMSCRIPTEN) || defined(_SWITCH)
+// TODO adhoc code
+UnityGfxRenderer g_UnityRendererType = kUnityGfxRendererOpenGLES20;
+#else
 UnityGfxRenderer g_UnityRendererType = kUnityGfxRendererNull;
+#endif
+
 Graphics* g_graphics = nullptr;
 
 Effekseer::Manager* g_EffekseerManager = NULL;
@@ -184,9 +191,9 @@ extern "C"
 	{
 		if (g_IsEffekseerPluginRegistered)
 			return;
-        
+
 #if (defined(__APPLE__) && (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR))
-        UnityRegisterRenderingPluginV5(UnityPluginLoad, UnityPluginUnload);
+		UnityRegisterRenderingPluginV5(UnityPluginLoad, UnityPluginUnload);
 #elif defined(EMSCRIPTEN) || defined(_SWITCH)
 		UnityRegisterRenderingPlugin(UnityPluginLoad, UnityPluginUnload);
 #else
