@@ -303,6 +303,28 @@ extern "C"
 
 		// Need not to assgin matrixes. Because these were assigned in EffekseerRenderBack
 
+		RenderSettings& settings = renderSettings[renderId];
+
+		if (settings.stereoEnabled) {
+			if (settings.stereoRenderCount == 0) 
+			{
+			}
+			else if (settings.stereoRenderCount == 1)
+			{
+				if (settings.stereoRenderMode == StereoRenderMode::SinglePass)
+				{
+					if (g_D3d11Context != NULL)
+					{
+						D3D11_VIEWPORT vp;
+						UINT viewportNum = 1;
+						g_D3d11Context->RSGetViewports(&viewportNum, &vp);
+						vp.TopLeftX = vp.Width;
+						g_D3d11Context->RSSetViewports(1, &vp);
+					}
+				}
+			}
+		}
+
 		g_EffekseerRenderer->BeginRendering();
 		g_EffekseerManager->DrawFront();
 		g_EffekseerRenderer->EndRendering();
@@ -345,6 +367,18 @@ extern "C"
 			else if (settings.stereoRenderCount == 1) {
 				projectionMatrix = settings.rightProjectionMatrix;
 				cameraMatrix = settings.rightCameraMatrix;
+
+				if (settings.stereoRenderMode == StereoRenderMode::SinglePass)
+				{
+					if (g_D3d11Context != NULL)
+					{
+						D3D11_VIEWPORT vp;
+						UINT viewportNum = 1;
+						g_D3d11Context->RSGetViewports(&viewportNum, &vp);
+						vp.TopLeftX = vp.Width;
+						g_D3d11Context->RSSetViewports(1, &vp);
+					}
+				}
 			}
 			settings.stereoRenderCount++;
 		}

@@ -317,11 +317,12 @@ extern "C"
 	}
 
 	// ステレオレンダリング(VR)用行列設定
-	void UNITY_API EffekseerSetStereoRenderingMatrix(int renderId, float projMatL[], float projMatR[], float camMatL[], float camMatR[])
+	void UNITY_API EffekseerSetStereoRenderingMatrix(int renderId, int mode, float projMatL[], float projMatR[], float camMatL[], float camMatR[])
 	{
 		if (renderId >= 0 && renderId < MAX_RENDER_PATH) {
 			auto& settings = renderSettings[renderId];
 			settings.stereoEnabled = true;
+			settings.stereoRenderMode = (StereoRenderMode)mode;
 			Array2Matrix(settings.leftProjectionMatrix, projMatL);
 			Array2Matrix(settings.rightProjectionMatrix, projMatR);
 			Array2Matrix(settings.leftCameraMatrix, camMatL);

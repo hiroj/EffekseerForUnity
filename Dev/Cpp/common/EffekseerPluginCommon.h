@@ -15,6 +15,13 @@ namespace EffekseerPlugin
 
 	extern Effekseer::Manager*	g_EffekseerManager;
 
+	enum StereoRenderMode
+	{
+		MultiPass = 0,
+		SinglePass = 1,
+		SinglePassInstanced = 2
+	};
+
 	struct RenderSettings {
 		Effekseer::Matrix44		cameraMatrix;
 		Effekseer::Matrix44		projectionMatrix;
@@ -22,6 +29,7 @@ namespace EffekseerPlugin
 		void*					backgroundTexture = nullptr;
 
 		bool					stereoEnabled;
+		StereoRenderMode		stereoRenderMode;
 		int						stereoRenderCount;
 		Effekseer::Matrix44		leftCameraMatrix;
 		Effekseer::Matrix44		leftProjectionMatrix;
