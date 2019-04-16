@@ -76,14 +76,28 @@ public class EffekseerSystem : MonoBehaviour
 	/// </summary>
 	const CameraEvent cameraEvent	= CameraEvent.AfterForwardAlpha;
 
-	#region Network
-	/// <summary xml:lang="en">
-	/// A network port to edit effects from remote
-	/// </summary>
-	/// <summary xml:lang="ja">
-	/// リモートでエフェクトを編集するためのネットワークのポート
-	/// </summary>
-	public uint NetworkPort = 60000;
+    /// <summary xml:lang="en">
+    /// stereo rendering modes available.
+    /// </summary>
+    /// <summary xml:lang="ja">
+    /// ステレオレンダリングタイプの指定
+    /// </summary>
+    public enum StereoRenderingMode
+    {
+        MultiPass = 0,
+        SinglePass = 1,
+        SinglePassInstanced = 2
+    }
+    public StereoRenderingMode stereoRenderMode;
+
+    #region Network
+    /// <summary xml:lang="en">
+    /// A network port to edit effects from remote
+    /// </summary>
+    /// <summary xml:lang="ja">
+    /// リモートでエフェクトを編集するためのネットワークのポート
+    /// </summary>
+    public uint NetworkPort = 60000;
 
 	/// <summary xml:lang="en">
 	/// Does run a server automatically to edit effects from remote?
@@ -92,22 +106,22 @@ public class EffekseerSystem : MonoBehaviour
 	/// リモートでエフェクトを編集するためにサーバーを自動的に起動するか?
 	/// </summary>
 	public bool DoStartNetworkAutomatically = false;
-	#endregion
+    #endregion
 
 
-	/// <summary xml:lang="en">
-	/// Plays the effect.
-	/// </summary>
-	/// <param name="name" xml:lang="en">Effect name</param>
-	/// <param name="location" xml:lang="en">Location in world space</param>
-	/// <returns>Played effect instance</returns>
-	/// <summary xml:lang="ja">
-	/// エフェクトの再生
-	/// </summary>
-	/// <param name="name" xml:lang="ja">エフェクト名</param>
-	/// <param name="location" xml:lang="ja">再生開始する位置</param>
-	/// <returns>再生したエフェクトインスタンス</returns>
-	public static EffekseerHandle PlayEffect(string name, Vector3 location)
+    /// <summary xml:lang="en">
+    /// Plays the effect.
+    /// </summary>
+    /// <param name="name" xml:lang="en">Effect name</param>
+    /// <param name="location" xml:lang="en">Location in world space</param>
+    /// <returns>Played effect instance</returns>
+    /// <summary xml:lang="ja">
+    /// エフェクトの再生
+    /// </summary>
+    /// <param name="name" xml:lang="ja">エフェクト名</param>
+    /// <param name="location" xml:lang="ja">再生開始する位置</param>
+    /// <returns>再生したエフェクトインスタンス</returns>
+    public static EffekseerHandle PlayEffect(string name, Vector3 location)
 	{
 		IntPtr effect = Instance._GetEffect(name);
 		if (effect != IntPtr.Zero) {
@@ -312,9 +326,9 @@ public class EffekseerSystem : MonoBehaviour
 			return true;
 		}
 	};
-	private Dictionary<Camera, RenderPath> renderPaths = new Dictionary<Camera, RenderPath>();
+    private Dictionary<Camera, List<RenderPath>> renderPaths = new Dictionary<Camera, List<RenderPath>>();
 
-	private IntPtr _GetEffect(string name) {
+    private IntPtr _GetEffect(string name) {
 		if (effectList.ContainsKey(name)) {
 			return effectList[name];
 		}
@@ -428,8 +442,8 @@ public class EffekseerSystem : MonoBehaviour
 				soundInstanceList.Add(go.AddComponent<SoundInstance>());
 			}
 		}
-		
-		Camera.onPreCull += OnPreCullEvent;
+
+        Camera.onPreCull += OnPreCullEvent;
 
 		if(Instance.DoStartNetworkAutomatically)
 		{
@@ -458,7 +472,37 @@ public class EffekseerSystem : MonoBehaviour
 		GL.IssuePluginEvent(Plugin.EffekseerGetRenderFunc(), 0);
 	}
 
-	protected virtual void Awake() {
+    StereoRenderingMode GetStereoRenderingMode()
+    {
+#if UNITY_EDITOR
+        if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.MultiPass)
+        {
+            return StereoRenderingMode.MultiPass;
+        }
+        else if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.SinglePass)
+        {
+            return StereoRenderingMode.SinglePass;
+        }
+        else if (PlayerSettings.stereoRenderingPath == StereoRenderingPath.Instancing)
+        {
+            return StereoRenderingMode.SinglePassInstanced;
+        }
+        else
+        {
+            return StereoRenderingMode.MultiPass;
+        }
+#endif
+        return stereoRenderMode;
+    }
+
+
+    void Reset()
+    {
+        stereoRenderMode = GetStereoRenderingMode();
+    }
+
+
+    protected virtual void Awake() {
 		this.Init();
 	}
 	
@@ -505,8 +549,8 @@ public class EffekseerSystem : MonoBehaviour
 		foreach (var pair in renderPaths) {
 			var camera = pair.Key;
 			var path = pair.Value;
-			path.Dispose();
-		}
+            path.ForEach(x => x.Dispose());
+        }
 		renderPaths.Clear();
 	}
 	
@@ -530,66 +574,110 @@ public class EffekseerSystem : MonoBehaviour
 			}
 		}
 #endif
-		RenderPath path;
-		
-		// カリングマスクをチェック
-		if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0) {
+        List<RenderPath> pathList = new List<RenderPath>();
+
+        // カリングマスクをチェック
+        if ((Camera.current.cullingMask & (1 << gameObject.layer)) == 0) {
 			if (renderPaths.ContainsKey(camera)) {
-				// レンダーパスが存在すればコマンドバッファを解除
-				path = renderPaths[camera];
-				path.Dispose();
-				renderPaths.Remove(camera);
+                // レンダーパスが存在すればコマンドバッファを解除
+                pathList = renderPaths[camera];
+                pathList.ForEach(x => x.Dispose());
+                renderPaths.Remove(camera);
 			}
 			return;
 		}
 
-		if (renderPaths.ContainsKey(camera)) {
-			// レンダーパスが有れば使う
-			path = renderPaths[camera];
-		} else {
-			// 無ければレンダーパスを作成
-			path = new RenderPath(camera, cameraEvent, renderPaths.Count);
-			path.Init(this.enableDistortion);
-			renderPaths.Add(camera, path);
+		if (renderPaths.ContainsKey(camera))
+        {
+            // レンダーパスが有れば使う
+            pathList = renderPaths[camera];
 		}
+        else
+        {
+            if(camera.stereoEnabled)
+            {
+                if (stereoRenderMode == StereoRenderingMode.MultiPass)
+                {
+                    var path = new RenderPath(camera, cameraEvent, renderPaths.Count);
+                    path.Init(this.enableDistortion);
+                    pathList.Add(path);
+                }
+                else if (stereoRenderMode == StereoRenderingMode.SinglePass)
+                {
+                    var left = new RenderPath(camera, cameraEvent, renderPaths.Count);
+                    left.Init(this.enableDistortion);
+                    pathList.Add(left);
 
-		if (!path.IsValid()) {
-			path.Dispose();
-			path.Init(this.enableDistortion);
-		}
+                    var right = new RenderPath(camera, cameraEvent, renderPaths.Count);
+                    right.Init(this.enableDistortion);
+                    pathList.Add(right);
+                }
+                else
+                {
+                    // Not supported
+                }
+            }
+            else
+            {
+                var path = new RenderPath(camera, cameraEvent, renderPaths.Count);
+                path.Init(this.enableDistortion);
+                pathList.Add(path);
+            }
 
-		// 歪みテクスチャをセット
-		if (path.renderTexture) {
-			Plugin.EffekseerSetBackGroundTexture(path.renderId, path.renderTexture.GetNativeTexturePtr());
-		}
+            renderPaths.Add(camera, pathList);
+        }
+
+        foreach (var path in pathList)
+        {
+            if (!path.IsValid())
+            {
+                path.Dispose();
+                path.Init(this.enableDistortion);
+            }
+
+            // 歪みテクスチャをセット
+            if (path.renderTexture)
+            {
+                Plugin.EffekseerSetBackGroundTexture(path.renderId, path.renderTexture.GetNativeTexturePtr());
+            }
+        }
 
 #if UNITY_5_4_OR_NEWER
-		// ステレオレンダリング(VR)用に左右目の行列を設定
-		if (camera.stereoEnabled) {
+        // ステレオレンダリング(VR)用に左右目の行列を設定
+        if (camera.stereoEnabled) {
 			float[] projMatL = Utility.Matrix2Array(GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left), false));
 			float[] projMatR = Utility.Matrix2Array(GL.GetGPUProjectionMatrix(camera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right), false));
 			float[] camMatL = Utility.Matrix2Array(camera.GetStereoViewMatrix(Camera.StereoscopicEye.Left));
 			float[] camMatR = Utility.Matrix2Array(camera.GetStereoViewMatrix(Camera.StereoscopicEye.Right));
-			Plugin.EffekseerSetStereoRenderingMatrix(path.renderId, projMatL, projMatR, camMatL, camMatR);
-		}
+            foreach (var path in pathList)
+            {
+                Plugin.EffekseerSetStereoRenderingMatrix(path.renderId, (int)stereoRenderMode, projMatL, projMatR, camMatL, camMatR);
+            }
+        }
 		else
 #endif
 		{
-			// ビュー関連の行列を更新
-			Plugin.EffekseerSetProjectionMatrix(path.renderId, Utility.Matrix2Array(
-				GL.GetGPUProjectionMatrix(camera.projectionMatrix, false)));
-			Plugin.EffekseerSetCameraMatrix(path.renderId, Utility.Matrix2Array(
-				camera.worldToCameraMatrix));
-		}
+            foreach (var path in pathList)
+            {
+                // ビュー関連の行列を更新
+                Plugin.EffekseerSetProjectionMatrix(path.renderId, Utility.Matrix2Array(
+                    GL.GetGPUProjectionMatrix(camera.projectionMatrix, false)));
+                Plugin.EffekseerSetCameraMatrix(path.renderId, Utility.Matrix2Array(
+                    camera.worldToCameraMatrix));
+            }
+        }
 	}
 	
 	void OnRenderObject() {
-		if (renderPaths.ContainsKey(Camera.current)) {
-			RenderPath path = renderPaths[Camera.current];
-			Plugin.EffekseerSetRenderSettings(path.renderId, 
-				(RenderTexture.active != null));
-		}
-	}
+        if (renderPaths.ContainsKey(Camera.current))
+        {
+            var pathList = renderPaths[Camera.current];
+            foreach (var path in pathList)
+            {
+                Plugin.EffekseerSetRenderSettings(path.renderId, (RenderTexture.active != null));
+            }
+        }
+    }
 
 	/// <summary>
 	/// HACK
@@ -789,7 +877,7 @@ public class EffekseerSystem : MonoBehaviour
 
 		return string.Join("/", pathes.ToArray());
 	}
-	#endregion
+#endregion
 }
 
 /// <summary xml:lang="ja">
