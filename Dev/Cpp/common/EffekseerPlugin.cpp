@@ -357,6 +357,14 @@ extern "C"
 
 		// 背景テクスチャを解除
 		SetBackGroundTexture(nullptr);
+
+		// Viewportを初期化
+		// VR以外のカメラが後続で描画される場合を考慮して元に戻す
+		RenderSettings& settings = renderSettings[renderId];
+		if (settings.stereoRenderingType == StereoRenderingType::SinglePass)
+		{
+			g_graphics->ShiftViewportForStereoSinglePass(false);
+		}
 	}
 
 	UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API EffekseerRenderBack(int renderId)
@@ -412,6 +420,11 @@ extern "C"
 			{
 				projectionMatrix = settings.leftProjectionMatrix;
 				cameraMatrix = settings.leftCameraMatrix;
+
+				if (settings.stereoRenderingType == StereoRenderingType::SinglePass)
+				{
+					g_graphics->ShiftViewportForStereoSinglePass(false);
+				}
 			}
 			else if (settings.stereoRenderCount == 1)
 			{
@@ -420,7 +433,7 @@ extern "C"
 
 				if (settings.stereoRenderingType == StereoRenderingType::SinglePass)
 				{
-					g_graphics->ShiftViewportForStereoSinglePass();
+					g_graphics->ShiftViewportForStereoSinglePass(true);
 				}
 			}
 			settings.stereoRenderCount++;
