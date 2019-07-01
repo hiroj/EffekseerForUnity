@@ -1201,7 +1201,7 @@ namespace Effekseer.Internal
 			{
 				path.Dispose();
 				var stereoRenderingType = (camera.stereoEnabled) ? StereoRendererUtil.GetStereoRenderingType() : StereoRendererUtil.StereoRenderingTypes.None;
-				path.Init(EffekseerRendererUtils.IsDistortionEnabled, dstID, dstIdentifier, StereoRendererUtil.GetStereoRenderingType());
+				path.Init(EffekseerRendererUtils.IsDistortionEnabled, dstID, dstIdentifier, stereoRenderingType);
 			}
 
 			path.LifeTime = 5;
